@@ -137,6 +137,7 @@ namespace GlassBreaker
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(Check("Sound", "sound", true));
             menu.Items.Add(Check("Keep marks until repaired", "persist", false));
+            menu.Items.Add(Check("Chain reaction (6 breaks drop the pane)", "chain", true));
             menu.Items.Add(AutoStartItem());
             menu.Items.Add(new ToolStripSeparator());
             ToolStripMenuItem miClear = new ToolStripMenuItem("Repair screen");
@@ -288,7 +289,28 @@ namespace GlassBreaker
             sounds.Play(e.Sound);
             while (decals.Count >= MaxDecals) { decals[0].Destroy(); decals.RemoveAt(0); }
             decals.Add(e.Make(p, rnd, scale));
+            if (e.Key == "glass" && Settings.On("chain", true)) ChainReaction(p);
             timer.Start();
+        }
+
+        /// <summary>Enough glass breaks close together and the whole pane falls out.</summary>
+        void ChainReaction(Point p)
+        {
+            const int Needed = 6;
+            float reach = 260 * scale;
+            List<Decal> near = new List<Decal>();
+            long sx = 0, sy = 0;
+            foreach (Decal d in decals)
+            {
+                if (!(d is GlassDecal)) continue;
+                float dx = d.Center.X - p.X, dy = d.Center.Y - p.Y;
+                if (dx * dx + dy * dy > reach * reach) continue;
+                near.Add(d); sx += d.Center.X; sy += d.Center.Y;
+            }
+            if (near.Count < Needed) return;
+            foreach (Decal d in near) { d.Destroy(); decals.Remove(d); }
+            sounds.Play("crash");
+            decals.Add(new PaneFallDecal(new Point((int)(sx / near.Count), (int)(sy / near.Count)), rnd, scale));
         }
 
         void Tick()
@@ -399,6 +421,15 @@ namespace GlassBreaker
                     if (a.Sample != null) Samples.Add(new KeyValuePair<string, Action<Graphics, float>>(a.Title, a.Sample));
 
                 Decal.Offscreen = true;
+                Samples.Add(new KeyValuePair<string, Action<Graphics, float>>("Chain reaction (0.45s)", delegate(Graphics g, float cell)
+                {
+                    PaneFallDecal d = new PaneFallDecal(new Point(0, 0), new Random(11), 1f);
+                    using (Bitmap b = d.Simulate(0.45))
+                    {
+                        float k = Math.Min(cell / b.Width, cell / b.Height);
+                        g.DrawImage(b, (cell - b.Width * k) / 2, 0, b.Width * k, b.Height * k);
+                    }
+                }));
                 double[] times = { 0.12, 0.45, 5.0 };
                 using (Bitmap sheet = new Bitmap(Cell * times.Length, Cell * Effects.All.Count))
                 {
