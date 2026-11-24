@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>A hammer dent, as if the screen were sheet metal: shaded bowl, bright lower lip, a few sparks.</summary>
     sealed class DentDecal : Decal

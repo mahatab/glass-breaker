@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     struct WinInfo { public IntPtr H; public Rectangle R; }
 

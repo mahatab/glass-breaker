@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>
     /// Snow that settles on the top edges of windows and the taskbar, or rain that streaks past

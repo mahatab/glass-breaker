@@ -1,15 +1,15 @@
 <p align="center">
-  <img src="docs/images/logo.png" alt="Glass Breaker" width="180" />
+  <img src="docs/images/logo.png" alt="Windows Tray Toys" width="180" />
 </p>
 
-<h1 align="center">Glass Breaker</h1>
+<h1 align="center">Windows Tray Toys</h1>
 
 <p align="center">
-  <strong>Click anywhere. Break your screen. Nothing is actually harmed.</strong>
+  <strong>A box of desktop toys in your system tray. Break your screen; nothing is actually harmed.</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/mahatab/glass-breaker/releases/latest"><img src="docs/images/badges/download.svg" alt="Download the latest release" /></a>
+  <a href="https://github.com/mahatab/windows-tray-toys/releases/latest"><img src="docs/images/badges/download.svg" alt="Download the latest release" /></a>
   <a href="LICENSE"><img src="docs/images/badges/license.svg" alt="MIT License" /></a>
   <img src="docs/images/badges/platform.svg" alt="Windows 10 | 11" />
   <img src="docs/images/badges/language.svg" alt="C# on .NET Framework 4.x" />
@@ -19,7 +19,7 @@
 
 ---
 
-Glass Breaker is a **Windows desktop toy** that lives in the system tray. Click anywhere on screen and it looks as if the monitor cracked under your mouse, with a smash to match. Pick other effects per mouse button, and switch on creatures and weather that share the desktop with you. Every overlay is **click-through**, so whatever you clicked still receives the click.
+Windows Tray Toys is a **collection of desktop toys** that lives in the system tray. It began as Glass Breaker: click anywhere on screen and it looks as if the monitor cracked under your mouse, with a smash to match. Pick other effects per mouse button, and switch on creatures and weather that share the desktop with you. Every overlay is **click-through**, so whatever you clicked still receives the click.
 
 <p align="center">
   <img src="docs/images/hero.png" alt="A mock desktop showing a glass break across one window, paint splats dripping down another, bullet holes, a burn mark, a dent, a firework, ants, an orange critter standing on a window, and a purple creature eating a starry hole in the corner of the screen" width="820" />
@@ -28,7 +28,7 @@ Glass Breaker is a **Windows desktop toy** that lives in the system tray. Click 
 
 ## Download
 
-Get **`GlassBreaker.exe`** from the [latest release](https://github.com/mahatab/glass-breaker/releases/latest), then double-click it.
+Get **`WindowsTrayToys.exe`** from the [latest release](https://github.com/mahatab/windows-tray-toys/releases/latest), then double-click it.
 
 - **One file, about 100 KB** — no installer, nothing else to install on Windows 10 or 11
 - **Code-signed and timestamped** — each release also lists its SHA-256 checksum
@@ -136,7 +136,7 @@ Pick a different effect for the **left**, **middle** and **right** mouse buttons
 | **Repair screen** | Clear every mark and give back anything eaten |
 | **Exit** | Quit |
 
-> Settings are stored in `%APPDATA%\GlassBreaker\settings.ini` and generated sounds in `%TEMP%\GlassBreaker`. Nothing else is written, apart from one registry entry if you tick **Start with Windows**.
+> Settings are stored in `%APPDATA%\WindowsTrayToys\settings.ini` and generated sounds in `%TEMP%\WindowsTrayToys`. Nothing else is written, apart from one registry entry if you tick **Start with Windows**.
 
 ## Quick Start
 
@@ -148,10 +148,10 @@ Pick a different effect for the **left**, **middle** and **right** mouse buttons
 ### Run
 
 ```bat
-git clone https://github.com/mahatab/glass-breaker.git
-cd glass-breaker
+git clone https://github.com/mahatab/windows-tray-toys.git
+cd windows-tray-toys
 build.cmd
-GlassBreaker.exe
+WindowsTrayToys.exe
 ```
 
 A tray icon appears. Click anywhere to break something; right-click the icon for options.
@@ -162,11 +162,11 @@ A tray icon appears. Click anywhere to break something; right-click the icon for
 build.cmd
 ```
 
-Produces `GlassBreaker.exe` next to the script. Exit any running copy first, because Windows locks the exe while it runs.
+Produces `WindowsTrayToys.exe` next to the script. Exit any running copy first, because Windows locks the exe while it runs.
 
 ```bat
-GlassBreaker.exe --selftest
-GlassBreaker.exe --docs
+WindowsTrayToys.exe --selftest
+WindowsTrayToys.exe --docs
 ```
 
 **`--selftest`** renders every effect to PNG contact sheets without touching the screen and checks that each sound opens. **`--docs`** regenerates the images in `docs/images` from the real drawing code.

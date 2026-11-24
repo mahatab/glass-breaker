@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>A laser hit: a flash, a glowing ring that cools, rising smoke, and a scorch mark left behind.</summary>
     sealed class BurnDecal : Decal

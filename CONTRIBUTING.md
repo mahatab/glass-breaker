@@ -1,4 +1,4 @@
-# Contributing to Glass Breaker
+# Contributing to Windows Tray Toys
 
 Thanks for wanting to make screens look more broken. New effects and creatures are especially
 welcome, and each one is a single class plus one line: see [Adding Effects](docs/ADDING_EFFECTS.md).
@@ -9,10 +9,10 @@ You need Windows 10 or 11 and nothing else. The C# compiler that builds the proj
 Windows.
 
 ```bat
-git clone https://github.com/mahatab/glass-breaker.git
-cd glass-breaker
+git clone https://github.com/mahatab/windows-tray-toys.git
+cd windows-tray-toys
 build.cmd
-GlassBreaker.exe
+WindowsTrayToys.exe
 ```
 
 Exit any running copy before building: Windows locks the exe while it runs.
@@ -22,7 +22,7 @@ Exit any running copy before building: Windows locks the exe while it runs.
 There is no unit test project. Instead the app can exercise itself:
 
 ```bat
-GlassBreaker.exe --selftest
+WindowsTrayToys.exe --selftest
 ```
 
 This writes three files to the current folder without touching the screen:
@@ -56,8 +56,8 @@ background, before opening a PR.
 - Say what the change does and how you checked it. A screenshot or the relevant part of a
   self-test image helps a lot for visual changes.
 - If you add an effect or feature, update the lists in `README.md`, and run
-  `GlassBreaker.exe --docs` if the README images should show it.
-- Do not commit `GlassBreaker.exe` or the `selftest*` files; both are ignored.
+  `WindowsTrayToys.exe --docs` if the README images should show it.
+- Do not commit `WindowsTrayToys.exe` or the `selftest*` files; both are ignored.
 
 ## Ideas
 
