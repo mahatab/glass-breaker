@@ -22,9 +22,9 @@
 Windows Tray Toys is a **collection of desktop toys** that lives in the system tray. It began as Glass Breaker: click anywhere on screen and it looks as if the monitor cracked under your mouse, with a smash to match. Pick other effects per mouse button, and switch on creatures and weather that share the desktop with you. Every overlay is **click-through**, so whatever you clicked still receives the click.
 
 <p align="center">
-  <img src="docs/images/hero.png" alt="A mock desktop showing a glass break across one window, paint splats dripping down another, bullet holes, a burn mark, a dent, a firework, ants, an orange critter standing on a window, and a purple creature eating a starry hole in the corner of the screen" width="820" />
+  <img src="docs/images/desktop-effects.png" alt="A real Windows desktop with a browser open, covered in a glass break, bullet holes, two dripping paint splats, a firework, a burn mark, a dent and a lightning bolt" width="820" />
 </p>
-<p align="center"><em>A bit of everything at once — every mark above is drawn by the app's own code</em></p>
+<p align="center"><em>A real desktop after a few clicks — the browser underneath still works</em></p>
 
 ## Download
 
@@ -115,6 +115,23 @@ Pick a different effect for the **left**, **middle** and **right** mouse buttons
 - **No network access** — nothing is downloaded or sent anywhere
 
 ## Screenshots
+
+The first two pictures are straight off a real desktop, taken by `WindowsTrayToys.exe --screenshots`.
+
+<p align="center">
+  <img src="docs/images/desktop-glass.png" alt="A real Windows desktop with one glass break spreading across a browser window" width="820" />
+</p>
+<p align="center"><em>The original toy — one click, one broken screen</em></p>
+
+<p align="center">
+  <img src="docs/images/desktop-creatures.png" alt="A real Windows desktop with snow falling and settling on the taskbar, a purple creature in the corner that has eaten a winding trail out of the screen, and an orange critter standing on the taskbar" width="820" />
+</p>
+<p align="center"><em>The residents — snow settling on the taskbar, the screen eater's trail, and the screen mate</em></p>
+
+<p align="center">
+  <img src="docs/images/hero.png" alt="An illustrated desktop showing a glass break across one window, paint splats dripping down another, bullet holes, a burn mark, a dent, a firework, ants, an orange critter standing on a window, and a purple creature eating a starry hole in the corner of the screen" width="820" />
+</p>
+<p align="center"><em>A bit of everything at once, on an illustrated desktop</em></p>
 
 <p align="center">
   <img src="docs/images/effects.png" alt="A grid of the nine click effects: glass break, bullet holes, paintball splats, water ripples, fireworks, confetti, burn marks, hammer dents and lightning strikes" width="820" />
