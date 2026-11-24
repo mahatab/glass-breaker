@@ -40,6 +40,7 @@ namespace GlassBreaker
             All.Add(new EffectDef("fireworks", "Fireworks", "pop", delegate(Point p, Random r, float s) { return new FireworkDecal(p, r, s); }));
             All.Add(new EffectDef("confetti", "Confetti", "pop", delegate(Point p, Random r, float s) { return new ConfettiDecal(p, r, s); }));
             All.Add(new EffectDef("burn", "Burn marks", "sizzle", delegate(Point p, Random r, float s) { return new BurnDecal(p, r, s); }));
+            All.Add(new EffectDef("dent", "Hammer dents", "clang", delegate(Point p, Random r, float s) { return new DentDecal(p, r, s); }));
         }
 
         public static EffectDef Find(string key)
