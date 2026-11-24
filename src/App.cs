@@ -470,6 +470,7 @@ namespace GlassBreaker
 
             if (args.Length > 0 && args[0] == "--selftest") { SelfTest.Run(scale, args.Length > 1 ? args[1] : "."); return; }
             if (args.Length > 0 && args[0] == "--docs") { DocImages.Run(args.Length > 1 ? args[1] : "docs\\images"); return; }
+            if (args.Length > 0 && args[0] == "--icon") { DocImages.Icon(args.Length > 1 ? args[1] : "assets\\app.ico"); return; }
 
             bool first;
             using (Mutex m = new Mutex(true, "GlassBreaker.SingleInstance", out first))

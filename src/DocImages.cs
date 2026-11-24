@@ -60,12 +60,72 @@ namespace GlassBreaker
             }
         }
 
+        /// <summary>
+        /// Writes the application icon: the logo at seven sizes in one .ico file. The 256-pixel
+        /// image is stored as PNG and the smaller ones as plain 32-bit bitmaps, which is the mix
+        /// Windows expects. The build embeds the file in the exe.
+        /// </summary>
+        public static void Icon(string path)
+        {
+            Decal.Offscreen = true;
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path)));
+            int[] sizes = { 16, 24, 32, 48, 64, 128, 256 };
+            List<byte[]> images = new List<byte[]>();
+            foreach (int size in sizes)
+                using (Bitmap b = new Bitmap(size, size, PixelFormat.Format32bppArgb))
+                {
+                    using (Graphics g = Canvas(b))
+                    {
+                        // the stand takes room the small sizes cannot spare, so they zoom in on the screen
+                        if (size < 48) { g.ScaleTransform(size / 320f, size / 320f); g.TranslateTransform(-20, -32); }
+                        else g.ScaleTransform(size / 360f, size / 360f);
+                        DrawLogo(g);
+                    }
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        if (size == 256) b.Save(ms, ImageFormat.Png);
+                        else
+                        {
+                            BinaryWriter w = new BinaryWriter(ms);
+                            int maskRow = (size + 31) / 32 * 4;
+                            w.Write(40); w.Write(size); w.Write(size * 2); w.Write((short)1); w.Write((short)32);
+                            w.Write(0); w.Write(size * size * 4 + maskRow * size); w.Write(0); w.Write(0); w.Write(0); w.Write(0);
+                            for (int y = size - 1; y >= 0; y--)
+                                for (int x = 0; x < size; x++) w.Write(b.GetPixel(x, y).ToArgb());
+                            w.Write(new byte[maskRow * size]);   // transparency comes from the alpha channel
+                            w.Flush();
+                        }
+                        images.Add(ms.ToArray());
+                    }
+                }
+            using (BinaryWriter w = new BinaryWriter(File.Create(path)))
+            {
+                w.Write((short)0); w.Write((short)1); w.Write((short)sizes.Length);
+                int offset = 6 + 16 * sizes.Length;
+                for (int i = 0; i < sizes.Length; i++)
+                {
+                    w.Write((byte)(sizes[i] == 256 ? 0 : sizes[i])); w.Write((byte)(sizes[i] == 256 ? 0 : sizes[i]));
+                    w.Write((byte)0); w.Write((byte)0); w.Write((short)1); w.Write((short)32);
+                    w.Write(images[i].Length); w.Write(offset);
+                    offset += images[i].Length;
+                }
+                foreach (byte[] img in images) w.Write(img);
+            }
+        }
+
         static void Logo(string path)
         {
-            const int S = 360;
-            using (Bitmap b = new Bitmap(S, S, PixelFormat.Format32bppArgb))
+            using (Bitmap b = new Bitmap(360, 360, PixelFormat.Format32bppArgb))
             {
-                using (Graphics g = Canvas(b))
+                using (Graphics g = Canvas(b)) DrawLogo(g);
+                b.Save(path, ImageFormat.Png);
+            }
+        }
+
+        /// <summary>The logo, drawn in a 360 x 360 space: a monitor with a cracked screen.</summary>
+        static void DrawLogo(Graphics g)
+        {
+            {
                 {
                     RectangleF bezel = new RectangleF(30, 50, 300, 210), screen = new RectangleF(44, 64, 272, 182);
                     using (SolidBrush stand = new SolidBrush(Color.FromArgb(255, 52, 58, 72)))
@@ -83,7 +143,6 @@ namespace GlassBreaker
                         g.ResetClip();
                     }
                 }
-                b.Save(path, ImageFormat.Png);
             }
         }
 
