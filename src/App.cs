@@ -105,7 +105,7 @@ namespace GlassBreaker
         SettingsForm settingsForm;
         readonly Control marshal = new Control();
         readonly Random rnd = new Random();
-        readonly Sounds sounds = new Sounds();
+        readonly Sounds sounds = new Sounds(Settings.Int("volume", 100));
         readonly HotkeyWindow hotkey = new HotkeyWindow();
         readonly Stopwatch clock = Stopwatch.StartNew();
         readonly Native.HookProc hookProc;   // kept alive for the lifetime of the hook
@@ -241,6 +241,7 @@ namespace GlassBreaker
             Decal.Persist = Settings.On("persist", false);
             Decal.HoldSeconds = Math.Max(1, Math.Min(60, Settings.Int("hold", 6)));
             sounds.Enabled = Settings.On("sound", true);
+            sounds.SetVolume(Settings.Int("volume", 100));
             string keyHint = hotkey.Ok ? " (" + HotkeyWindow.Display + (Enabled ? " to pause)" : " to arm)") : "";
             tray.Text = (Enabled ? "Glass Breaker - armed" : "Glass Breaker - paused") + keyHint;
             if (settingsForm != null && !settingsForm.IsDisposed && settingsForm.Visible) settingsForm.RefreshAll();
