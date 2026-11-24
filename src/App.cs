@@ -75,6 +75,7 @@ namespace GlassBreaker
 
         public static string Get(string key, string def) { string v; return map.TryGetValue(key, out v) ? v : def; }
         public static bool On(string key, bool def) { return Get(key, def ? "1" : "0") == "1"; }
+        public static int Int(string key, int def) { int v; return int.TryParse(Get(key, ""), out v) ? v : def; }
         public static void Set(string key, bool value) { Set(key, value ? "1" : "0"); }
 
         public static void Set(string key, string value)
@@ -238,6 +239,7 @@ namespace GlassBreaker
         void Apply()
         {
             Decal.Persist = Settings.On("persist", false);
+            Decal.HoldSeconds = Math.Max(1, Math.Min(60, Settings.Int("hold", 6)));
             sounds.Enabled = Settings.On("sound", true);
             string keyHint = hotkey.Ok ? " (" + HotkeyWindow.Display + (Enabled ? " to pause)" : " to arm)") : "";
             tray.Text = (Enabled ? "Glass Breaker - armed" : "Glass Breaker - paused") + keyHint;
@@ -490,6 +492,20 @@ namespace GlassBreaker
                         sheet.Save(Path.Combine(outDir, "selftest_ambient.png"), ImageFormat.Png);
                     }
                 log.AppendLine("ambient samples rendered: " + Samples.Count);
+
+                // the settings window, one picture per tab, side by side
+                using (SettingsForm form = new SettingsForm(scale, null, null, true))
+                {
+                    List<Bitmap> shots = form.Snapshots();
+                    using (Bitmap sheet = new Bitmap(shots[0].Width * shots.Count, shots[0].Height))
+                    {
+                        using (Graphics g = Graphics.FromImage(sheet))
+                            for (int i = 0; i < shots.Count; i++) g.DrawImageUnscaled(shots[i], i * shots[0].Width, 0);
+                        sheet.Save(Path.Combine(outDir, "selftest_settings.png"), ImageFormat.Png);
+                    }
+                    foreach (Bitmap b in shots) b.Dispose();
+                    log.AppendLine("settings tabs rendered: " + shots.Count);
+                }
             }
             catch (Exception ex) { log.AppendLine("FAILED: " + ex); }
             File.WriteAllText(Path.Combine(outDir, "selftest.log"), log.ToString());
