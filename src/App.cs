@@ -103,6 +103,7 @@ namespace GlassBreaker
         readonly Control marshal = new Control();
         readonly Random rnd = new Random();
         readonly Sounds sounds = new Sounds();
+        readonly HotkeyWindow hotkey = new HotkeyWindow();
         readonly Stopwatch clock = Stopwatch.StartNew();
         readonly Native.HookProc hookProc;   // kept alive for the lifetime of the hook
         readonly float scale;
@@ -119,6 +120,13 @@ namespace GlassBreaker
 
             miEnabled = Check("Enabled", "enabled", true);
             menu.Items.Add(miEnabled);
+            // the hotkey is the panic button: it pauses everything and wipes the screen clean, or re-arms
+            hotkey.Pressed += delegate
+            {
+                if (Enabled) Repair();
+                miEnabled.Checked = !miEnabled.Checked;
+            };
+            if (hotkey.Ok) miEnabled.ShortcutKeyDisplayString = HotkeyWindow.Display;
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(Picker("Left click", "left"));
             menu.Items.Add(Picker("Middle click", "middle"));
@@ -200,7 +208,8 @@ namespace GlassBreaker
         {
             Decal.Persist = Settings.On("persist", false);
             sounds.Enabled = Settings.On("sound", true);
-            tray.Text = Enabled ? "Glass Breaker - armed (double-click to pause)" : "Glass Breaker - paused (double-click to arm)";
+            string keyHint = hotkey.Ok ? " or " + HotkeyWindow.Display : "";
+            tray.Text = Enabled ? "Glass Breaker - armed (double-click" + keyHint + " to pause)" : "Glass Breaker - paused (double-click" + keyHint + " to arm)";
 
             // start, stop or re-mode the always-on features
             foreach (AmbientDef a in Ambients.All)
@@ -276,6 +285,7 @@ namespace GlassBreaker
         {
             if (hook != IntPtr.Zero) { Native.UnhookWindowsHookEx(hook); hook = IntPtr.Zero; }
             timer.Stop();
+            hotkey.Dispose();
             Repair();
             foreach (IAmbient a in live.Values) a.Dispose();
             live.Clear();
