@@ -170,7 +170,7 @@ namespace WindowsTrayToys
             TabPage p;
             if (pages.TryGetValue(title, out p)) return p;
             p = new TabPage(title);
-            p.UseVisualStyleBackColor = true;
+            p.BackColor = SystemColors.Window;   // a plain colour, so sliders (which cannot be transparent) can match it
             tabs.TabPages.Add(p);
             pages[title] = p;
             nextY[title] = S(14);
@@ -185,9 +185,11 @@ namespace WindowsTrayToys
             Label l = new Label();
             l.Text = text;
             l.ForeColor = SystemColors.GrayText;
-            l.SetBounds(S(16), nextY[page], S(400), S(34));
+            // tall enough for however many lines the text wraps to
+            int tall = TextRenderer.MeasureText(text, Font, new Size(S(400), 0), TextFormatFlags.WordBreak).Height + S(4);
+            l.SetBounds(S(16), nextY[page], S(400), tall);
             p.Controls.Add(l);
-            nextY[page] += S(40);
+            nextY[page] += tall + S(8);
             return l;
         }
 
@@ -256,7 +258,7 @@ namespace WindowsTrayToys
             TrackBar t = new TrackBar();
             t.AutoSize = false;
             t.TickStyle = TickStyle.None;
-            t.BackColor = SystemColors.ControlLightLight;   // a TrackBar cannot be transparent; match the tab page
+            t.BackColor = SystemColors.Window;
             t.Minimum = min / step; t.Maximum = max / step;
             t.SetBounds(S(164), nextY[page], S(190), S(30));
             Label v = new Label();

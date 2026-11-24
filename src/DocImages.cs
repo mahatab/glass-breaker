@@ -22,6 +22,27 @@ namespace WindowsTrayToys
             Hero(Path.Combine(dir, "hero.png"));
             EffectsGrid(Path.Combine(dir, "effects.png"));
             AlwaysOn(Path.Combine(dir, "always-on.png"));
+            SettingsTabs(Path.Combine(dir, "settings.png"));
+        }
+
+        /// <summary>The settings window's tabs, two to a row.</summary>
+        static void SettingsTabs(string path)
+        {
+            using (SettingsForm form = new SettingsForm(1f, null, null, true))
+            {
+                List<Bitmap> shots = form.Snapshots();
+                int w = shots[0].Width, h = shots[0].Height, rows = (shots.Count + 1) / 2, gap = 16;
+                using (Bitmap sheet = new Bitmap(w * 2 + gap * 3, h * rows + gap * (rows + 1), PixelFormat.Format32bppArgb))
+                {
+                    using (Graphics g = Graphics.FromImage(sheet))
+                    {
+                        g.Clear(Color.FromArgb(255, 30, 44, 72));
+                        for (int i = 0; i < shots.Count; i++) g.DrawImageUnscaled(shots[i], gap + i % 2 * (w + gap), gap + i / 2 * (h + gap));
+                    }
+                    sheet.Save(path, ImageFormat.Png);
+                }
+                foreach (Bitmap b in shots) b.Dispose();
+            }
         }
 
         /// <summary>
@@ -322,9 +343,9 @@ namespace WindowsTrayToys
         /// <summary>One cell per click effect, each at its most recognisable moment.</summary>
         static void EffectsGrid(string path)
         {
-            const int C = 400, Cols = 4;
+            const int C = 400, Cols = 3;
             Dictionary<string, double> when = new Dictionary<string, double>();
-            when["ripples"] = 0.45; when["fireworks"] = 0.3; when["confetti"] = 0.5; when["burn"] = 0.5;
+            when["ripples"] = 0.45; when["lightning"] = 0.05; when["fireworks"] = 0.3; when["confetti"] = 0.5; when["burn"] = 0.5;
             int rows = (Effects.All.Count + Cols - 1) / Cols;
             using (Bitmap b = new Bitmap(C * Cols, C * rows, PixelFormat.Format32bppArgb))
             {
