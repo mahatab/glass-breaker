@@ -100,6 +100,8 @@ namespace GlassBreaker
         readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
         readonly List<Decal> decals = new List<Decal>();
         readonly Dictionary<string, IAmbient> live = new Dictionary<string, IAmbient>();
+        readonly List<Action> menuSync = new List<Action>();
+        SettingsForm settingsForm;
         readonly Control marshal = new Control();
         readonly Random rnd = new Random();
         readonly Sounds sounds = new Sounds();
@@ -117,6 +119,13 @@ namespace GlassBreaker
             IntPtr force = marshal.Handle;
             timer.Interval = 15;
             timer.Tick += delegate { Tick(); };
+
+            ToolStripMenuItem miSettings = new ToolStripMenuItem("Settings...");
+            miSettings.Font = new Font(miSettings.Font, FontStyle.Bold);   // bold = what double-click does
+            miSettings.Click += delegate { ShowSettings(); };
+            menu.Items.Add(miSettings);
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Opening += delegate { foreach (Action sync in menuSync) sync(); };
 
             miEnabled = Check("Enabled", "enabled", true);
             menu.Items.Add(miEnabled);
@@ -151,9 +160,9 @@ namespace GlassBreaker
             tray.Icon = MakeIcon();
             tray.ContextMenuStrip = menu;
             tray.Visible = true;
-            tray.DoubleClick += delegate { miEnabled.Checked = !miEnabled.Checked; };
+            tray.DoubleClick += delegate { ShowSettings(); };
             Apply();
-            tray.ShowBalloonTip(4000, "Glass Breaker is armed", "Click anywhere to smash the screen. Right-click this tray icon to pick effects or to exit.", ToolTipIcon.Info);
+            tray.ShowBalloonTip(4000, "Glass Breaker is armed", "Click anywhere to smash the screen. Double-click this tray icon for settings, or right-click it for the menu.", ToolTipIcon.Info);
 
             hookProc = HookCallback;
             hook = Native.SetWindowsHookEx(Native.WH_MOUSE_LL, hookProc, Native.GetModuleHandle(null), 0);
@@ -170,8 +179,19 @@ namespace GlassBreaker
             ToolStripMenuItem mi = new ToolStripMenuItem(title);
             mi.Checked = Settings.On(key, def);
             mi.CheckOnClick = true;
-            mi.CheckedChanged += delegate { Settings.Set(key, mi.Checked); Apply(); };
+            mi.CheckedChanged += delegate { if (Settings.On(key, def) != mi.Checked) { Settings.Set(key, mi.Checked); Apply(); } };
+            // the settings window can change the same setting, so re-read it whenever the menu opens
+            menuSync.Add(delegate { mi.Checked = Settings.On(key, def); });
             return mi;
+        }
+
+        void ShowSettings()
+        {
+            if (settingsForm == null || settingsForm.IsDisposed)
+                settingsForm = new SettingsForm(scale, delegate { Apply(); }, tray.Icon, hotkey.Ok);
+            settingsForm.RefreshAll();
+            settingsForm.Show();
+            settingsForm.Activate();
         }
 
         /// <summary>A submenu of mutually exclusive choices stored under one settings key.</summary>
@@ -203,30 +223,12 @@ namespace GlassBreaker
             return Choice(title, button, DefaultFor(button), keys.ToArray(), names.ToArray());
         }
 
-        /// <summary>"Start with Windows": a per-user Run entry, written only when the user ticks the box.</summary>
-        static ToolStripMenuItem AutoStartItem()
+        ToolStripMenuItem AutoStartItem()
         {
-            const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run", Name = "GlassBreaker";
             ToolStripMenuItem mi = new ToolStripMenuItem("Start with Windows");
-            try
-            {
-                using (Microsoft.Win32.RegistryKey k = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RunKey))
-                    mi.Checked = k != null && k.GetValue(Name) != null;
-            }
-            catch (Exception) { }
-            mi.Click += delegate
-            {
-                try
-                {
-                    using (Microsoft.Win32.RegistryKey k = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RunKey))
-                    {
-                        if (mi.Checked) k.DeleteValue(Name, false);
-                        else k.SetValue(Name, "\"" + Application.ExecutablePath + "\"");
-                    }
-                    mi.Checked = !mi.Checked;
-                }
-                catch (Exception ex) { MessageBox.Show("Could not change the startup setting: " + ex.Message, "Glass Breaker"); }
-            };
+            mi.Checked = AutoStart.Get();
+            mi.Click += delegate { AutoStart.Set(!mi.Checked); mi.Checked = AutoStart.Get(); Apply(); };
+            menuSync.Add(delegate { mi.Checked = AutoStart.Get(); });
             return mi;
         }
 
@@ -237,8 +239,9 @@ namespace GlassBreaker
         {
             Decal.Persist = Settings.On("persist", false);
             sounds.Enabled = Settings.On("sound", true);
-            string keyHint = hotkey.Ok ? " or " + HotkeyWindow.Display : "";
-            tray.Text = Enabled ? "Glass Breaker - armed (double-click" + keyHint + " to pause)" : "Glass Breaker - paused (double-click" + keyHint + " to arm)";
+            string keyHint = hotkey.Ok ? " (" + HotkeyWindow.Display + (Enabled ? " to pause)" : " to arm)") : "";
+            tray.Text = (Enabled ? "Glass Breaker - armed" : "Glass Breaker - paused") + keyHint;
+            if (settingsForm != null && !settingsForm.IsDisposed && settingsForm.Visible) settingsForm.RefreshAll();
 
             // start, stop or re-mode the always-on features
             foreach (AmbientDef a in Ambients.All)
@@ -277,6 +280,8 @@ namespace GlassBreaker
 
         void OnClick(Point p, string button)
         {
+            // don't smash our own settings window while the user is working in it
+            if (settingsForm != null && !settingsForm.IsDisposed && settingsForm.Visible && settingsForm.Bounds.Contains(p)) return;
             foreach (IAmbient a in live.Values) if (a.TryClick(p)) return;   // squashed a bug, poked a creature...
             string key = Settings.Get(button, DefaultFor(button));
             if (key == "none") return;
@@ -337,6 +342,7 @@ namespace GlassBreaker
             if (hook != IntPtr.Zero) { Native.UnhookWindowsHookEx(hook); hook = IntPtr.Zero; }
             timer.Stop();
             hotkey.Dispose();
+            if (settingsForm != null && !settingsForm.IsDisposed) settingsForm.Dispose();
             Repair();
             foreach (IAmbient a in live.Values) a.Dispose();
             live.Clear();

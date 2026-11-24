@@ -1,0 +1,173 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace GlassBreaker
+{
+    /// <summary>"Start with Windows": a per-user Run entry, written only when the user asks for it.</summary>
+    static class AutoStart
+    {
+        const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run", Name = "GlassBreaker";
+
+        public static bool Get()
+        {
+            try
+            {
+                using (Microsoft.Win32.RegistryKey k = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RunKey))
+                    return k != null && k.GetValue(Name) != null;
+            }
+            catch (Exception) { return false; }
+        }
+
+        public static void Set(bool on)
+        {
+            try
+            {
+                using (Microsoft.Win32.RegistryKey k = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RunKey))
+                {
+                    if (on) k.SetValue(Name, "\"" + Application.ExecutablePath + "\"");
+                    else k.DeleteValue(Name, false);
+                }
+            }
+            catch (Exception ex) { MessageBox.Show("Could not change the startup setting: " + ex.Message, "Glass Breaker"); }
+        }
+    }
+
+    /// <summary>
+    /// The settings window. Every control writes its setting the moment it changes and tells the
+    /// app to apply it, so there is no OK or Cancel. Pages are filled with the Add* helpers, which
+    /// lay rows out top to bottom.
+    /// </summary>
+    sealed class SettingsForm : Form
+    {
+        readonly float scale;
+        readonly Action changed;
+        readonly TabControl tabs = new TabControl();
+        readonly Dictionary<string, TabPage> pages = new Dictionary<string, TabPage>();
+        readonly Dictionary<string, int> nextY = new Dictionary<string, int>();
+        readonly List<Action> refreshers = new List<Action>();
+        bool refreshing;
+
+        public SettingsForm(float scale, Action changed, Icon icon, bool hotkeyOk)
+        {
+            this.scale = scale; this.changed = changed;
+            Text = "Glass Breaker settings";
+            Icon = icon;
+            Font = new Font("Segoe UI", 9f);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = MinimizeBox = false;
+            StartPosition = FormStartPosition.CenterScreen;
+            AutoScaleMode = AutoScaleMode.None;
+            ClientSize = new Size(S(460), S(480));
+
+            tabs.SetBounds(S(10), S(10), S(440), S(420));
+            Controls.Add(tabs);
+            Button close = new Button();
+            close.Text = "Close";
+            close.SetBounds(S(360), S(440), S(90), S(28));
+            close.Click += delegate { Close(); };
+            Controls.Add(close);
+            AcceptButton = CancelButton = close;
+
+            // General
+            AddCheck("General", "Enabled" + (hotkeyOk ? "  (" + HotkeyWindow.Display + " pauses and clears)" : ""), "enabled", true);
+            AddCheck("General", "Sound", "sound", true);
+            AddCheck("General", "Start with Windows", delegate { return AutoStart.Get(); }, delegate(bool on) { AutoStart.Set(on); });
+            AddCheck("General", "Keep marks until repaired", "persist", false);
+            AddCheck("General", "Chain reaction: six glass breaks close together drop the pane", "chain", true);
+
+            // Clicks
+            List<string> keys = new List<string>(), names = new List<string>();
+            keys.Add("none"); names.Add("Nothing");
+            foreach (EffectDef e in Effects.All) { keys.Add(e.Key); names.Add(e.Name); }
+            keys.Add("random"); names.Add("Random");
+            AddNote("Clicks", "Choose what each mouse button does. Your click always reaches the app underneath.");
+            AddChoice("Clicks", "Left click", "left", "glass", keys.ToArray(), names.ToArray());
+            AddChoice("Clicks", "Middle click", "middle", "none", keys.ToArray(), names.ToArray());
+            AddChoice("Clicks", "Right click", "right", "none", keys.ToArray(), names.ToArray());
+
+            // Desktop: one row per always-on feature
+            AddNote("Desktop", "Things that live on your desktop without needing a click.");
+            foreach (AmbientDef a in Ambients.All)
+            {
+                if (a.Keys == null) AddCheck("Desktop", a.Title, a.Key, false);
+                else AddChoice("Desktop", a.Title, a.Key, a.Off, a.Keys, a.Names);
+            }
+        }
+
+        int S(int v) { return (int)(v * scale); }
+
+        TabPage Page(string title)
+        {
+            TabPage p;
+            if (pages.TryGetValue(title, out p)) return p;
+            p = new TabPage(title);
+            p.UseVisualStyleBackColor = true;
+            tabs.TabPages.Add(p);
+            pages[title] = p;
+            nextY[title] = S(14);
+            return p;
+        }
+
+        void Fire() { if (!refreshing && changed != null) changed(); }
+
+        public Label AddNote(string page, string text)
+        {
+            TabPage p = Page(page);
+            Label l = new Label();
+            l.Text = text;
+            l.ForeColor = SystemColors.GrayText;
+            l.SetBounds(S(16), nextY[page], S(400), S(34));
+            p.Controls.Add(l);
+            nextY[page] += S(40);
+            return l;
+        }
+
+        public CheckBox AddCheck(string page, string text, string key, bool def)
+        {
+            return AddCheck(page, text, delegate { return Settings.On(key, def); }, delegate(bool on) { Settings.Set(key, on); });
+        }
+
+        public CheckBox AddCheck(string page, string text, Func<bool> get, Action<bool> set)
+        {
+            TabPage p = Page(page);
+            CheckBox c = new CheckBox();
+            c.Text = text;
+            c.SetBounds(S(16), nextY[page], S(400), S(24));
+            c.Checked = get();
+            c.CheckedChanged += delegate { if (refreshing) return; set(c.Checked); Fire(); };
+            refreshers.Add(delegate { c.Checked = get(); });
+            p.Controls.Add(c);
+            nextY[page] += S(30);
+            return c;
+        }
+
+        public ComboBox AddChoice(string page, string label, string key, string def, string[] keys, string[] names)
+        {
+            TabPage p = Page(page);
+            Label l = new Label();
+            l.Text = label;
+            l.SetBounds(S(16), nextY[page] + S(4), S(150), S(22));
+            ComboBox c = new ComboBox();
+            c.DropDownStyle = ComboBoxStyle.DropDownList;
+            c.Items.AddRange(names);
+            c.SetBounds(S(170), nextY[page], S(240), S(24));
+            Action load = delegate { c.SelectedIndex = Math.Max(0, Array.IndexOf(keys, Settings.Get(key, def))); };
+            load();
+            c.SelectedIndexChanged += delegate { if (refreshing || c.SelectedIndex < 0) return; Settings.Set(key, keys[c.SelectedIndex]); Fire(); };
+            refreshers.Add(load);
+            p.Controls.Add(l); p.Controls.Add(c);
+            nextY[page] += S(36);
+            return c;
+        }
+
+        /// <summary>Re-reads every setting into its control, after something else (the tray menu, the hotkey) changed it.</summary>
+        public void RefreshAll()
+        {
+            refreshing = true;
+            try { foreach (Action r in refreshers) r(); }
+            finally { refreshing = false; }
+        }
+    }
+}
