@@ -77,6 +77,7 @@ namespace GlassBreaker
             AddSlider("General", "Volume", "volume", 100, 0, 100, 10, " %");
             AddCheck("General", "Start with Windows", delegate { return AutoStart.Get(); }, delegate(bool on) { AutoStart.Set(on); });
             AddCheck("General", "Start paused", "startpaused", false);
+            AddCheck("General", "Pause while a full-screen app is in front (games, films)", "fullscreen", true);
             AddCheck("General", "Keep marks until repaired", "persist", false);
             AddSlider("General", "Marks stay for", "hold", 6, 1, 60, 1, " s");
             AddCheck("General", "Chain reaction: six glass breaks close together drop the pane", "chain", true);

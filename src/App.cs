@@ -110,7 +110,8 @@ namespace GlassBreaker
         readonly Native.HookProc hookProc;   // kept alive for the lifetime of the hook
         readonly float scale;
         IntPtr hook;
-        double lastTick;
+        double lastTick, lastScreenCheck;
+        bool blocked;   // a full-screen app is in front
 
         public TrayApp(float scale, bool quiet)
         {
@@ -237,6 +238,28 @@ namespace GlassBreaker
 
         bool Enabled { get { return Settings.On("enabled", true); } }
 
+        /// <summary>
+        /// True when the window in front exactly covers its monitor: a game, a film, a presentation.
+        /// A maximized window does not count, because it overshoots the screen by its hidden borders
+        /// and leaves room for the taskbar.
+        /// </summary>
+        static bool FullScreenAppInFront()
+        {
+            IntPtr h = Native.GetForegroundWindow();
+            if (h == IntPtr.Zero) return false;
+            uint pid;
+            Native.GetWindowThreadProcessId(h, out pid);
+            if (pid == (uint)Process.GetCurrentProcess().Id) return false;
+            StringBuilder cls = new StringBuilder(64);
+            Native.GetClassName(h, cls, cls.Capacity);
+            string c = cls.ToString();
+            if (c == "Progman" || c == "WorkerW") return false;   // the desktop itself
+            Native.RECT r;
+            if (!Native.GetWindowRect(h, out r)) return false;
+            Rectangle b = Screen.FromHandle(h).Bounds;
+            return r.Left == b.Left && r.Top == b.Top && r.Right == b.Right && r.Bottom == b.Bottom;
+        }
+
         /// <summary>Display scale times the user's chosen mark size.</summary>
         float MarkScale
         {
@@ -264,7 +287,7 @@ namespace GlassBreaker
                 string mode = Settings.Get(a.Key, a.Off);
                 IAmbient inst;
                 bool have = live.TryGetValue(a.Key, out inst);
-                if (Enabled && mode != a.Off)
+                if (Enabled && !blocked && mode != a.Off)
                 {
                     if (!have) { inst = a.Make(scale, rnd, sounds); live[a.Key] = inst; }
                     inst.SetMode(mode);
@@ -297,6 +320,7 @@ namespace GlassBreaker
         {
             // don't smash our own settings window while the user is working in it
             if (settingsForm != null && !settingsForm.IsDisposed && settingsForm.Visible && settingsForm.Bounds.Contains(p)) return;
+            if (Settings.On("fullscreen", true) && FullScreenAppInFront()) return;   // leave games and films alone
             foreach (IAmbient a in live.Values) if (a.TryClick(p)) return;   // squashed a bug, poked a creature...
             string key = Settings.Get(button, DefaultFor(button));
             if (key == "none") return;
@@ -343,7 +367,16 @@ namespace GlassBreaker
             for (int i = decals.Count - 1; i >= 0; i--)
                 if (!decals[i].Update()) { decals[i].Destroy(); decals.RemoveAt(i); }
             foreach (IAmbient a in live.Values) a.Tick(dt);
-            if (decals.Count == 0 && live.Count == 0) timer.Stop();
+
+            // once a second, hide the always-on features while a full-screen app is in front
+            if (now - lastScreenCheck > 1)
+            {
+                lastScreenCheck = now;
+                bool block = Settings.On("fullscreen", true) && FullScreenAppInFront();
+                if (block != blocked) { blocked = block; Apply(); }
+            }
+            // while blocked the timer must keep running, or nothing would notice the app leaving
+            if (decals.Count == 0 && live.Count == 0 && !blocked) timer.Stop();
         }
 
         void Repair()
