@@ -94,7 +94,6 @@ namespace GlassBreaker
 
     sealed class TrayApp : ApplicationContext
     {
-        const int MaxDecals = 60;
         readonly NotifyIcon tray;
         readonly ContextMenuStrip menu = new ContextMenuStrip();
         readonly ToolStripMenuItem miEnabled;
@@ -305,7 +304,8 @@ namespace GlassBreaker
         void Spawn(EffectDef e, Point p)
         {
             sounds.Play(e.Sound);
-            while (decals.Count >= MaxDecals) { decals[0].Destroy(); decals.RemoveAt(0); }
+            int most = Math.Max(5, Math.Min(150, Settings.Int("maxmarks", 60)));   // the oldest mark makes room for the newest
+            while (decals.Count >= most) { decals[0].Destroy(); decals.RemoveAt(0); }
             decals.Add(e.Make(p, rnd, MarkScale));
             if (e.Key == "glass" && Settings.On("chain", true)) ChainReaction(p);
             timer.Start();
