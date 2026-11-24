@@ -13,7 +13,7 @@
   <a href="LICENSE"><img src="docs/images/badges/license.svg" alt="MIT License" /></a>
   <img src="docs/images/badges/platform.svg" alt="Windows 10 | 11" />
   <img src="docs/images/badges/language.svg" alt="C# on .NET Framework 4.x" />
-  <img src="docs/images/badges/size.svg" alt="About 100 KB" />
+  <img src="docs/images/badges/size.svg" alt="About 250 KB" />
   <img src="docs/images/badges/dependencies.svg" alt="No dependencies" />
 </p>
 
@@ -30,7 +30,7 @@ Windows Tray Toys is a **collection of desktop toys** that lives in the system t
 
 Get **`WindowsTrayToys.exe`** from the [latest release](https://github.com/mahatab/windows-tray-toys/releases/latest), then double-click it.
 
-- **One file, about 100 KB** — no installer, nothing else to install on Windows 10 or 11
+- **One file, about 250 KB** — no installer, nothing else to install on Windows 10 or 11
 - **Code-signed and timestamped** — each release also lists its SHA-256 checksum
 - **Easy to remove** — exit from the tray menu and delete the file
 
@@ -62,6 +62,7 @@ Pick a different effect for the **left**, **middle** and **right** mouse buttons
 - **Confetti** — paper that flutters down
 - **Burn marks** — a laser hit that glows, smokes and leaves a scorch
 - **Hammer dents** — as if the screen were sheet metal
+- **Lightning strikes** — a forked bolt from the top of the screen, with thunder
 - **Random** — a different one every click
 
 ### Chain Reaction ![Glass break](docs/images/badges/glass-break.svg)
@@ -92,12 +93,19 @@ Pick a different effect for the **left**, **middle** and **right** mouse buttons
 - Each bite reveals a starfield "behind" the desktop, and the eaten area keeps growing
 - **Click it** and it bolts off-screen for a while; **Repair screen** gives everything back
 
+### Settings Window
+- **Double-click the tray icon** to open it; every change applies immediately
+- **Start with Windows** — launches quietly at sign-in, with an option to **start paused**
+- **Volume** and **how long marks stay** (1 to 60 seconds), or keep them until repaired
+- **Mark size** (small to huge) and the **most marks on screen at once**
+- **Number of bugs** in the swarm
+- **Pauses for full-screen apps** — stays out of the way of games, films and presentations
+- Keeps a running count of **how many marks you have made**
+
 ### Controls
 - **Ctrl+Alt+G panic button** — clears the screen and pauses everything; press again to resume
-- **Double-click the tray icon** to pause and resume
 - **Repair screen** — clear every mark at once
-- **Keep marks until repaired** — marks normally fade after about six seconds
-- **Sound** on or off, and **Start with Windows**
+- Everything in the settings window is also a click away in the tray menu
 - Choices are remembered between runs
 
 ### Small and Self-Contained
@@ -109,20 +117,26 @@ Pick a different effect for the **left**, **middle** and **right** mouse buttons
 ## Screenshots
 
 <p align="center">
-  <img src="docs/images/effects.png" alt="A grid of the eight click effects: glass break, bullet holes, paintball splats, water ripples, fireworks, confetti, burn marks and hammer dents" width="820" />
+  <img src="docs/images/effects.png" alt="A grid of the nine click effects: glass break, bullet holes, paintball splats, water ripples, fireworks, confetti, burn marks, hammer dents and lightning strikes" width="820" />
 </p>
-<p align="center"><em>The eight click effects — assign any of them to any mouse button</em></p>
+<p align="center"><em>The nine click effects — assign any of them to any mouse button</em></p>
 
 <p align="center">
   <img src="docs/images/always-on.png" alt="A grid showing mouse trails, crawling bugs, weather, the screen mate, the screen eater and the chain reaction" width="820" />
 </p>
 <p align="center"><em>Trails, bugs, weather, the screen mate, the screen eater, and the pane falling out</em></p>
 
+<p align="center">
+  <img src="docs/images/settings.png" alt="The four tabs of the settings window: General, Clicks, Desktop and About" width="820" />
+</p>
+<p align="center"><em>The settings window — General, Clicks, Desktop and About</em></p>
+
 ## Tray Menu
 
 | Item | What it does |
 |------|--------------|
-| **Enabled** | Pause or resume everything (also Ctrl+Alt+G, or double-click the icon) |
+| **Settings...** | Open the settings window (also by double-clicking the icon) |
+| **Enabled** | Pause or resume everything (also Ctrl+Alt+G) |
 | **Left / Middle / Right click** | Choose the effect for each mouse button |
 | **Mouse trail** | Off, Sparks, Bubbles or Footprints |
 | **Crawling bugs** | Ants and flies on or off |
@@ -167,9 +181,16 @@ Produces `WindowsTrayToys.exe` next to the script. Exit any running copy first, 
 ```bat
 WindowsTrayToys.exe --selftest
 WindowsTrayToys.exe --docs
+WindowsTrayToys.exe --icon
+WindowsTrayToys.exe --screenshots
 ```
 
-**`--selftest`** renders every effect to PNG contact sheets without touching the screen and checks that each sound opens. **`--docs`** regenerates the images in `docs/images` from the real drawing code.
+| Mode | What it does |
+|------|--------------|
+| `--selftest` | Renders every effect and each settings tab to PNG without touching the screen, and checks that each sound opens |
+| `--docs` | Regenerates the images in `docs/images` from the real drawing code |
+| `--icon` | Regenerates `assets/app.ico`, the icon the build embeds in the exe |
+| `--screenshots` | Stages three scenes on the real desktop and saves a picture of each to `screenshots/` |
 
 ## Architecture
 
@@ -182,6 +203,8 @@ build.cmd                 One-line build with the compiler that ships with Windo
     ├── Desktop.cs        List of visible windows, colour-keyed full-screen overlay
     ├── Sounds.cs         Synthesizes and plays every sound
     ├── Hotkey.cs         Ctrl+Alt+G
+    ├── SettingsForm.cs   The settings window, and Start with Windows
+    ├── AssemblyInfo.cs   Version information
     │
     ├── Glass.cs          Click effects: one Decal subclass each
     ├── Bullet.cs
@@ -190,6 +213,7 @@ build.cmd                 One-line build with the compiler that ships with Windo
     ├── Fireworks.cs      Fireworks and confetti
     ├── Burn.cs
     ├── Dent.cs
+    ├── Lightning.cs
     ├── PaneFall.cs       The chain reaction
     │
     ├── Ambient.cs        IAmbient interface and registry for always-on features
@@ -199,7 +223,7 @@ build.cmd                 One-line build with the compiler that ships with Windo
     ├── Mate.cs
     ├── Eater.cs
     │
-    └── DocImages.cs      Generates the README images
+    └── DocImages.cs      Generates the README images and the icon; photographs the real desktop
 ```
 
 ### Tech Stack
