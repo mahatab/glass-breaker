@@ -12,9 +12,9 @@ namespace GlassBreaker
     sealed class Sounds : IDisposable
     {
         const int SR = 44100;
-        const string Version = "v2";
-        static readonly string[] Names = { "smash", "crash", "gunshot", "splat", "plip", "pop", "sizzle", "clang", "crunch", "squish" };
-        static readonly int[] Counts = { 5, 2, 3, 3, 3, 3, 2, 3, 3, 2 };
+        const string Version = "v3";
+        static readonly string[] Names = { "smash", "crash", "gunshot", "splat", "plip", "pop", "sizzle", "clang", "crunch", "squish", "thunder" };
+        static readonly int[] Counts = { 5, 2, 3, 3, 3, 3, 2, 3, 3, 2, 2 };
 
         readonly Dictionary<string, int> count = new Dictionary<string, int>();
         readonly Dictionary<string, int> last = new Dictionary<string, int>();
@@ -101,6 +101,7 @@ namespace GlassBreaker
                 case "sizzle": return Sizzle(r);
                 case "clang": return Clang(r);
                 case "crunch": return Crunch(r);
+                case "thunder": return Thunder(r);
                 default: return Squish(r);
             }
         }
@@ -292,6 +293,28 @@ namespace GlassBreaker
                     buf[s0 + j] += hp * amp * Math.Exp(-j / (double)SR * 85) * 3;
                 }
                 at += 0.05 + r.NextDouble() * 0.035;
+            }
+            return buf;
+        }
+
+        // A sharp crack, a second clap, then a long rumble: noise through two low-pass stages that slowly wobbles.
+        static double[] Thunder(Random r)
+        {
+            int n = (int)(SR * 2.7);
+            double[] buf = new double[n];
+            double lp1 = 0, lp2 = 0, clap = 0, wobble = 2.5 + r.NextDouble() * 2, ph = r.NextDouble() * 6;
+            for (int i = 0; i < n; i++)
+            {
+                double t = i / (double)SR, w = White(r);
+                lp1 += Coef(90 + 260 * Math.Exp(-t * 3)) * (w - lp1);
+                lp2 += Coef(170) * (lp1 - lp2);
+                double env = Math.Min(1, t / 0.03) * Math.Exp(-t * 1.5) * (0.7 + 0.3 * Math.Sin(2 * Math.PI * wobble * t + ph));
+                buf[i] = lp2 * env * 9 + w * Math.Exp(-t * 45) * 1.4;
+                if (t > 0.22)
+                {
+                    clap += Coef(1500) * (w - clap);
+                    buf[i] += clap * Math.Exp(-(t - 0.22) * 16) * 1.6;
+                }
             }
             return buf;
         }
