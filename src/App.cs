@@ -387,6 +387,7 @@ namespace GlassBreaker
             using (Graphics g = Graphics.FromHwnd(IntPtr.Zero)) scale = Math.Max(1f, g.DpiX / 96f);
 
             if (args.Length > 0 && args[0] == "--selftest") { SelfTest.Run(scale, args.Length > 1 ? args[1] : "."); return; }
+            if (args.Length > 0 && args[0] == "--docs") { DocImages.Run(args.Length > 1 ? args[1] : "docs\\images"); return; }
 
             bool first;
             using (Mutex m = new Mutex(true, "GlassBreaker.SingleInstance", out first))
@@ -411,6 +412,25 @@ namespace GlassBreaker
         public static readonly List<KeyValuePair<string, Action<Graphics, float>>> Samples = new List<KeyValuePair<string, Action<Graphics, float>>>();
         const int Cell = 420;
 
+        /// <summary>Collects one sample drawing per always-on feature, plus the chain reaction.</summary>
+        public static void BuildSamples()
+        {
+            if (Samples.Count > 0) return;
+            foreach (AmbientDef a in Ambients.All)
+                if (a.Sample != null) Samples.Add(new KeyValuePair<string, Action<Graphics, float>>(a.Title, a.Sample));
+
+            Decal.Offscreen = true;
+            Samples.Add(new KeyValuePair<string, Action<Graphics, float>>("Chain reaction (0.45s)", delegate(Graphics g, float cell)
+            {
+                PaneFallDecal d = new PaneFallDecal(new Point(0, 0), new Random(11), 1f);
+                using (Bitmap b = d.Simulate(0.45))
+                {
+                    float k = Math.Min(cell / b.Width, cell / b.Height);
+                    g.DrawImage(b, (cell - b.Width * k) / 2, 0, b.Width * k, b.Height * k);
+                }
+            }));
+        }
+
         public static void Run(float scale, string outDir)
         {
             StringBuilder log = new StringBuilder();
@@ -418,19 +438,8 @@ namespace GlassBreaker
             {
                 using (Sounds snd = new Sounds()) foreach (string line in snd.Log) log.AppendLine(line);
 
-                foreach (AmbientDef a in Ambients.All)
-                    if (a.Sample != null) Samples.Add(new KeyValuePair<string, Action<Graphics, float>>(a.Title, a.Sample));
-
                 Decal.Offscreen = true;
-                Samples.Add(new KeyValuePair<string, Action<Graphics, float>>("Chain reaction (0.45s)", delegate(Graphics g, float cell)
-                {
-                    PaneFallDecal d = new PaneFallDecal(new Point(0, 0), new Random(11), 1f);
-                    using (Bitmap b = d.Simulate(0.45))
-                    {
-                        float k = Math.Min(cell / b.Width, cell / b.Height);
-                        g.DrawImage(b, (cell - b.Width * k) / 2, 0, b.Width * k, b.Height * k);
-                    }
-                }));
+                BuildSamples();
                 double[] times = { 0.12, 0.45, 5.0 };
                 using (Bitmap sheet = new Bitmap(Cell * times.Length, Cell * Effects.All.Count))
                 {

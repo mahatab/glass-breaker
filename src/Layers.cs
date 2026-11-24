@@ -74,6 +74,7 @@ namespace GlassBreaker
         protected double AnimTime = 0.3, StillAt = 0, Hold = -1;
         protected bool HasStill = true;
         public Point Center;
+        public PointF Anchor { get { return new PointF(cx, cy); } }
 
         readonly Stopwatch clock = new Stopwatch();
         Bitmap frame, still;
