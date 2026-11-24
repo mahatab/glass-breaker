@@ -137,6 +137,7 @@ namespace GlassBreaker
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(Check("Sound", "sound", true));
             menu.Items.Add(Check("Keep marks until repaired", "persist", false));
+            menu.Items.Add(AutoStartItem());
             menu.Items.Add(new ToolStripSeparator());
             ToolStripMenuItem miClear = new ToolStripMenuItem("Repair screen");
             miClear.Click += delegate { Repair(); };
@@ -199,6 +200,33 @@ namespace GlassBreaker
             foreach (EffectDef e in Effects.All) { keys.Add(e.Key); names.Add(e.Name); }
             if (Effects.All.Count > 1) { keys.Add("random"); names.Add("Random"); }
             return Choice(title, button, DefaultFor(button), keys.ToArray(), names.ToArray());
+        }
+
+        /// <summary>"Start with Windows": a per-user Run entry, written only when the user ticks the box.</summary>
+        static ToolStripMenuItem AutoStartItem()
+        {
+            const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run", Name = "GlassBreaker";
+            ToolStripMenuItem mi = new ToolStripMenuItem("Start with Windows");
+            try
+            {
+                using (Microsoft.Win32.RegistryKey k = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RunKey))
+                    mi.Checked = k != null && k.GetValue(Name) != null;
+            }
+            catch (Exception) { }
+            mi.Click += delegate
+            {
+                try
+                {
+                    using (Microsoft.Win32.RegistryKey k = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RunKey))
+                    {
+                        if (mi.Checked) k.DeleteValue(Name, false);
+                        else k.SetValue(Name, "\"" + Application.ExecutablePath + "\"");
+                    }
+                    mi.Checked = !mi.Checked;
+                }
+                catch (Exception ex) { MessageBox.Show("Could not change the startup setting: " + ex.Message, "Glass Breaker"); }
+            };
+            return mi;
         }
 
         bool Enabled { get { return Settings.On("enabled", true); } }
