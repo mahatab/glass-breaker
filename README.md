@@ -9,12 +9,12 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/mahatab/glass-breaker/releases/latest"><img src="https://img.shields.io/github/v/release/mahatab/glass-breaker?color=2ea44f" alt="Latest release" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
-  <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4" alt="Windows 10 | 11" />
-  <img src="https://img.shields.io/badge/C%23-.NET%20Framework%204.x-512BD4" alt="C# on .NET Framework 4.x" />
-  <img src="https://img.shields.io/badge/size-~100%20KB-orange" alt="About 100 KB" />
-  <img src="https://img.shields.io/badge/dependencies-none-brightgreen" alt="No dependencies" />
+  <a href="https://github.com/mahatab/glass-breaker/releases/latest"><img src="docs/images/badges/download.svg" alt="Download the latest release" /></a>
+  <a href="LICENSE"><img src="docs/images/badges/license.svg" alt="MIT License" /></a>
+  <img src="docs/images/badges/platform.svg" alt="Windows 10 | 11" />
+  <img src="docs/images/badges/language.svg" alt="C# on .NET Framework 4.x" />
+  <img src="docs/images/badges/size.svg" alt="About 100 KB" />
+  <img src="docs/images/badges/dependencies.svg" alt="No dependencies" />
 </p>
 
 ---
@@ -64,7 +64,7 @@ Pick a different effect for the **left**, **middle** and **right** mouse buttons
 - **Hammer dents** — as if the screen were sheet metal
 - **Random** — a different one every click
 
-### Chain Reaction ![Glass break](https://img.shields.io/badge/Glass_break-orange)
+### Chain Reaction ![Glass break](docs/images/badges/glass-break.svg)
 - Land **six glass breaks close together** and the whole pane gives way
 - Big shards drop out of a jagged hole and fall down the screen, with a longer crash
 - Can be turned off from the tray menu
