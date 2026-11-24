@@ -99,6 +99,7 @@ namespace GlassBreaker
         readonly ToolStripMenuItem miEnabled;
         readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
         readonly List<Decal> decals = new List<Decal>();
+        readonly Dictionary<string, IAmbient> live = new Dictionary<string, IAmbient>();
         readonly Control marshal = new Control();
         readonly Random rnd = new Random();
         readonly Sounds sounds = new Sounds();
@@ -113,6 +114,8 @@ namespace GlassBreaker
             this.scale = scale;
             marshal.CreateControl();
             IntPtr force = marshal.Handle;
+            timer.Interval = 15;
+            timer.Tick += delegate { Tick(); };
 
             miEnabled = Check("Enabled", "enabled", true);
             menu.Items.Add(miEnabled);
@@ -120,6 +123,9 @@ namespace GlassBreaker
             menu.Items.Add(Picker("Left click", "left"));
             menu.Items.Add(Picker("Middle click", "middle"));
             menu.Items.Add(Picker("Right click", "right"));
+            menu.Items.Add(new ToolStripSeparator());
+            foreach (AmbientDef a in Ambients.All)
+                menu.Items.Add(a.Keys == null ? Check(a.Title, a.Key, false) : Choice(a.Title, a.Key, a.Off, a.Keys, a.Names));
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(Check("Sound", "sound", true));
             menu.Items.Add(Check("Keep marks until repaired", "persist", false));
@@ -138,9 +144,6 @@ namespace GlassBreaker
             tray.DoubleClick += delegate { miEnabled.Checked = !miEnabled.Checked; };
             Apply();
             tray.ShowBalloonTip(4000, "Glass Breaker is armed", "Click anywhere to smash the screen. Right-click this tray icon to pick effects or to exit.", ToolTipIcon.Info);
-
-            timer.Interval = 15;
-            timer.Tick += delegate { Tick(); };
 
             hookProc = HookCallback;
             hook = Native.SetWindowsHookEx(Native.WH_MOUSE_LL, hookProc, Native.GetModuleHandle(null), 0);
@@ -198,6 +201,21 @@ namespace GlassBreaker
             Decal.Persist = Settings.On("persist", false);
             sounds.Enabled = Settings.On("sound", true);
             tray.Text = Enabled ? "Glass Breaker - armed (double-click to pause)" : "Glass Breaker - paused (double-click to arm)";
+
+            // start, stop or re-mode the always-on features
+            foreach (AmbientDef a in Ambients.All)
+            {
+                string mode = Settings.Get(a.Key, a.Off);
+                IAmbient inst;
+                bool have = live.TryGetValue(a.Key, out inst);
+                if (Enabled && mode != a.Off)
+                {
+                    if (!have) { inst = a.Make(scale, rnd, sounds); live[a.Key] = inst; }
+                    inst.SetMode(mode);
+                }
+                else if (have) { inst.Dispose(); live.Remove(a.Key); }
+            }
+            if (live.Count > 0) timer.Start();
         }
 
         // ---------------------------------------------------------- clicks
@@ -221,6 +239,7 @@ namespace GlassBreaker
 
         void OnClick(Point p, string button)
         {
+            foreach (IAmbient a in live.Values) if (a.TryClick(p)) return;   // squashed a bug, poked a creature...
             string key = Settings.Get(button, DefaultFor(button));
             if (key == "none") return;
             EffectDef e = key == "random" ? Effects.All[rnd.Next(Effects.All.Count)] : Effects.Find(key);
@@ -242,15 +261,15 @@ namespace GlassBreaker
             lastTick = now;
             for (int i = decals.Count - 1; i >= 0; i--)
                 if (!decals[i].Update()) { decals[i].Destroy(); decals.RemoveAt(i); }
-            if (decals.Count == 0 && !AmbientActive()) timer.Stop();
+            foreach (IAmbient a in live.Values) a.Tick(dt);
+            if (decals.Count == 0 && live.Count == 0) timer.Stop();
         }
-
-        bool AmbientActive() { return false; }
 
         void Repair()
         {
             foreach (Decal d in decals) d.Destroy();
             decals.Clear();
+            foreach (IAmbient a in live.Values) a.Repair();
         }
 
         void Quit()
@@ -258,6 +277,8 @@ namespace GlassBreaker
             if (hook != IntPtr.Zero) { Native.UnhookWindowsHookEx(hook); hook = IntPtr.Zero; }
             timer.Stop();
             Repair();
+            foreach (IAmbient a in live.Values) a.Dispose();
+            live.Clear();
             tray.Visible = false;
             tray.Dispose();
             sounds.Dispose();
@@ -335,6 +356,9 @@ namespace GlassBreaker
             try
             {
                 using (Sounds snd = new Sounds()) foreach (string line in snd.Log) log.AppendLine(line);
+
+                foreach (AmbientDef a in Ambients.All)
+                    if (a.Sample != null) Samples.Add(new KeyValuePair<string, Action<Graphics, float>>(a.Title, a.Sample));
 
                 Decal.Offscreen = true;
                 double[] times = { 0.12, 0.45, 5.0 };
