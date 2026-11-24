@@ -78,9 +78,24 @@ namespace GlassBreaker
         public static int Int(string key, int def) { int v; return int.TryParse(Get(key, ""), out v) ? v : def; }
         public static void Set(string key, bool value) { Set(key, value ? "1" : "0"); }
 
+        static int unsaved;
+
+        /// <summary>Adds one to a counter. Written to disk only every so often, and on exit, since it changes on every click.</summary>
+        public static void Count(string key)
+        {
+            map[key] = (Int(key, 0) + 1).ToString();
+            if (++unsaved >= 25) Save();
+        }
+
         public static void Set(string key, string value)
         {
             map[key] = value;
+            Save();
+        }
+
+        public static void Save()
+        {
+            unsaved = 0;
             if (path == null) return;
             try
             {
@@ -155,6 +170,10 @@ namespace GlassBreaker
             miClear.Click += delegate { Repair(); };
             ToolStripMenuItem miExit = new ToolStripMenuItem("Exit");
             miExit.Click += delegate { Quit(); };
+            ToolStripMenuItem miCount = new ToolStripMenuItem();
+            miCount.Enabled = false;   // a readout, not a command
+            menuSync.Add(delegate { miCount.Text = MarksMade(); });
+            menu.Items.Add(miCount);
             menu.Items.Add(miClear);
             menu.Items.Add(miExit);
 
@@ -237,6 +256,12 @@ namespace GlassBreaker
         }
 
         bool Enabled { get { return Settings.On("enabled", true); } }
+
+        public static string MarksMade()
+        {
+            int n = Settings.Int("marks", 0);
+            return n == 0 ? "No marks made yet" : n == 1 ? "1 mark made so far" : n.ToString("N0") + " marks made so far";
+        }
 
         /// <summary>
         /// True when the window in front exactly covers its monitor: a game, a film, a presentation.
@@ -331,6 +356,7 @@ namespace GlassBreaker
         void Spawn(EffectDef e, Point p)
         {
             sounds.Play(e.Sound);
+            Settings.Count("marks");
             int most = Math.Max(5, Math.Min(150, Settings.Int("maxmarks", 60)));   // the oldest mark makes room for the newest
             while (decals.Count >= most) { decals[0].Destroy(); decals.RemoveAt(0); }
             decals.Add(e.Make(p, rnd, MarkScale));
@@ -390,6 +416,7 @@ namespace GlassBreaker
         {
             if (hook != IntPtr.Zero) { Native.UnhookWindowsHookEx(hook); hook = IntPtr.Zero; }
             timer.Stop();
+            Settings.Save();   // the mark counter is only written now and then
             hotkey.Dispose();
             if (settingsForm != null && !settingsForm.IsDisposed) settingsForm.Dispose();
             Repair();
