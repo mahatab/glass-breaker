@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>
     /// Every sound is synthesized (no audio assets). Each named sound has a few variations,
@@ -46,7 +46,7 @@ namespace GlassBreaker
             Log.Clear();
             if (volume == 0) return;
             double gain = Math.Pow(volume / 100.0, 1.6);   // ears are not linear: this makes 50% sound about half as loud
-            string dir = Path.Combine(Path.GetTempPath(), "GlassBreaker", Version, "vol" + volume);
+            string dir = Path.Combine(Path.GetTempPath(), "WindowsTrayToys", Version, "vol" + volume);
             Directory.CreateDirectory(dir);
             open = true;
             for (int n = 0; n < Names.Length; n++)

@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>A small bullet hole: dark puncture, frosted rim, a few short cracks.</summary>
     sealed class BulletDecal : Decal

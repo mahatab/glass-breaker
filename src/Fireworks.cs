@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>A firework burst: coloured sparks with trails that slow, droop and twinkle out.</summary>
     sealed class FireworkDecal : Decal

@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>Registers Ctrl+Alt+G system-wide and raises Pressed when it is hit.</summary>
     sealed class HotkeyWindow : NativeWindow, IDisposable

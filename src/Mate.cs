@@ -5,7 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>
     /// A small orange critter that walks along the top of the taskbar, hops up onto windows,

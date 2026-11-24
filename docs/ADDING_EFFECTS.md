@@ -15,7 +15,7 @@ inside it, builds any random geometry, and ends with `Start(p)`.
 using System;
 using System.Drawing;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>A gold star that pops in and stays.</summary>
     sealed class StarDecal : Decal
@@ -151,7 +151,7 @@ cannot provide one.
 
 ```bat
 build.cmd
-GlassBreaker.exe --selftest
+WindowsTrayToys.exe --selftest
 ```
 
 Open `selftest_effects.png` (each click effect at 0.12 s, 0.45 s and 5 s) and
@@ -159,4 +159,4 @@ Open `selftest_effects.png` (each click effect at 0.12 s, 0.45 s and 5 s) and
 `FAILED`. Then run the app and try it for real: the self-test cannot tell you how something
 feels, or how it looks over actual windows.
 
-If the effect belongs in the README, run `GlassBreaker.exe --docs` to regenerate the images.
+If the effect belongs in the README, run `WindowsTrayToys.exe --docs` to regenerate the images.

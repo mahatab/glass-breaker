@@ -6,10 +6,10 @@ using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>
-    /// "GlassBreaker.exe --docs [dir]" regenerates the README images from the real drawing code,
+    /// "WindowsTrayToys.exe --docs [dir]" regenerates the README images from the real drawing code,
     /// so the documentation always shows what the app actually draws.
     /// </summary>
     static class DocImages

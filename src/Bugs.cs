@@ -5,7 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>Ants and flies that wander the screen, each in its own tiny window. Click one to squash it.</summary>
     sealed class Bugs : IAmbient

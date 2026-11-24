@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>Sparks, bubbles or paw prints that follow the cursor, drawn in one window that travels with it.</summary>
     sealed class Trail : IAmbient

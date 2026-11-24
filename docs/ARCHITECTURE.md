@@ -1,6 +1,6 @@
 # Architecture
 
-Glass Breaker is one small Windows Forms process with no main window. It owns a tray icon, a
+Windows Tray Toys is one small Windows Forms process with no main window. It owns a tray icon, a
 mouse hook, a timer, and a changing set of overlay windows. Everything runs on the UI thread.
 
 ## The pieces
@@ -27,7 +27,7 @@ flowchart TD
 | `TrayApp` | `App.cs` | Owns everything; builds the menu; routes clicks; runs the timer |
 | `Effects` / `EffectDef` | `App.cs` | Registry of click effects |
 | `Ambients` / `AmbientDef` | `Ambient.cs` | Registry of always-on features |
-| `Settings` | `App.cs` | `key=value` file in `%APPDATA%\GlassBreaker` |
+| `Settings` | `App.cs` | `key=value` file in `%APPDATA%\WindowsTrayToys` |
 | `LayerWin` | `Layers.cs` | A small click-through window with per-pixel alpha |
 | `Decal` | `Layers.cs` | One mark: animates, holds, fades |
 | `KeyedForm` | `Desktop.cs` | A full-screen click-through window with one transparent colour |
@@ -87,22 +87,22 @@ documentation images use.
 ## The timer
 
 One 15 ms Windows Forms timer drives everything: it updates every decal and ticks every running
-always-on feature. It stops itself when there is nothing to animate, so an idle Glass Breaker
+always-on feature. It stops itself when there is nothing to animate, so an idle Windows Tray Toys
 does no work at all. Weather halves its own rate to about 30 fps.
 
 ## Knowing about other windows
 
 `WindowList` enumerates visible top-level windows twice a second, skipping minimized, cloaked
-and tool windows, the desktop itself, and Glass Breaker's own overlays. It adds a pseudo-window
+and tool windows, the desktop itself, and Windows Tray Toys's own overlays. It adds a pseudo-window
 for the taskbar, called the floor. `TopVisibleAt` asks Windows what is really showing at a point
 on a window's top edge, so snow does not settle on, and the screen mate does not stand on, an
 edge that another window covers. Because every overlay is click-through, those hit tests see
-straight through Glass Breaker's own windows.
+straight through Windows Tray Toys's own windows.
 
 ## Sound
 
 There are no audio files. On first run `Sounds` synthesizes a few variations of each named sound
-as 16-bit mono PCM and writes them to `%TEMP%\GlassBreaker`:
+as 16-bit mono PCM and writes them to `%TEMP%\WindowsTrayToys`:
 
 | Sound | Recipe |
 |-------|--------|

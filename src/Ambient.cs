@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>Something that lives on the desktop without needing a click (trails, creatures, weather).</summary>
     interface IAmbient : IDisposable

@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>Rings spreading from the click, as if the screen were a pond. Leaves no mark.</summary>
     sealed class RippleDecal : Decal

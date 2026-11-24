@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>A random-coloured paint splat whose drips slowly run down the screen.</summary>
     sealed class PaintballDecal : Decal

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>The original effect: a spider-web glass break with flying shards.</summary>
     sealed class GlassDecal : Decal

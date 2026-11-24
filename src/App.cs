@@ -1,4 +1,4 @@
-// Glass Breaker - a Windows desktop toy that lives in the system tray.
+// Windows Tray Toys - a collection of desktop toys that lives in the system tray.
 // Clicks anywhere on screen leave marks (glass breaks and friends) with matching sounds.
 // Clicks are never blocked: every overlay is click-through and the mouse hook only listens.
 
@@ -14,7 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace GlassBreaker
+namespace WindowsTrayToys
 {
     /// <summary>A click effect the user can assign to a mouse button.</summary>
     sealed class EffectDef
@@ -51,7 +51,7 @@ namespace GlassBreaker
         }
     }
 
-    /// <summary>Small key=value settings file in %APPDATA%\GlassBreaker.</summary>
+    /// <summary>Small key=value settings file in %APPDATA%\WindowsTrayToys.</summary>
     static class Settings
     {
         static readonly Dictionary<string, string> map = new Dictionary<string, string>();
@@ -59,11 +59,14 @@ namespace GlassBreaker
 
         public static void Load()
         {
-            string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GlassBreaker");
+            string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WindowsTrayToys");
             path = Path.Combine(dir, "settings.ini");
             try
             {
                 Directory.CreateDirectory(dir);
+                // the project used to be called Glass Breaker: carry settings over from its folder once
+                string old = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Glass" + "Breaker", "settings.ini");
+                if (!File.Exists(path) && File.Exists(old)) File.Copy(old, path);
                 if (!File.Exists(path)) return;
                 foreach (string line in File.ReadAllLines(path))
                 {
@@ -185,13 +188,13 @@ namespace GlassBreaker
             tray.DoubleClick += delegate { ShowSettings(); };
             Apply();
             if (!quiet)
-                tray.ShowBalloonTip(4000, Enabled ? "Glass Breaker is armed" : "Glass Breaker is paused",
+                tray.ShowBalloonTip(4000, Enabled ? "Windows Tray Toys is armed" : "Windows Tray Toys is paused",
                     (Enabled ? "Click anywhere to smash the screen. " : "") + "Double-click this tray icon for settings, or right-click it for the menu.", ToolTipIcon.Info);
 
             hookProc = HookCallback;
             hook = Native.SetWindowsHookEx(Native.WH_MOUSE_LL, hookProc, Native.GetModuleHandle(null), 0);
             if (hook == IntPtr.Zero)
-                MessageBox.Show("Could not install the mouse hook (error " + Marshal.GetLastWin32Error() + ").", "Glass Breaker");
+                MessageBox.Show("Could not install the mouse hook (error " + Marshal.GetLastWin32Error() + ").", "Windows Tray Toys");
         }
 
         // ---------------------------------------------------------- menu helpers
@@ -304,7 +307,7 @@ namespace GlassBreaker
             sounds.Enabled = Settings.On("sound", true);
             sounds.SetVolume(Settings.Int("volume", 100));
             string keyHint = hotkey.Ok ? " (" + HotkeyWindow.Display + (Enabled ? " to pause)" : " to arm)") : "";
-            tray.Text = (Enabled ? "Glass Breaker - armed" : "Glass Breaker - paused") + keyHint;
+            tray.Text = (Enabled ? "Windows Tray Toys - armed" : "Windows Tray Toys - paused") + keyHint;
             if (settingsForm != null && !settingsForm.IsDisposed && settingsForm.Visible) settingsForm.RefreshAll();
 
             // start, stop or re-mode the always-on features
@@ -474,21 +477,22 @@ namespace GlassBreaker
             if (args.Length > 0 && args[0] == "--icon") { DocImages.Icon(args.Length > 1 ? args[1] : "assets\\app.ico"); return; }
 
             bool first;
-            using (Mutex m = new Mutex(true, "GlassBreaker.SingleInstance", out first))
+            using (Mutex m = new Mutex(true, "WindowsTrayToys.SingleInstance", out first))
             {
                 if (!first)
                 {
-                    MessageBox.Show("Glass Breaker is already running - look for its icon in the system tray.", "Glass Breaker");
+                    MessageBox.Show("Windows Tray Toys is already running - look for its icon in the system tray.", "Windows Tray Toys");
                     return;
                 }
                 Settings.Load();
+                AutoStart.MigrateOldName();
                 Application.Run(new TrayApp(scale, Array.IndexOf(args, "--autostart") >= 0));
             }
         }
     }
 
     /// <summary>
-    /// "GlassBreaker.exe --selftest [dir]" renders every effect to PNG contact sheets without
+    /// "WindowsTrayToys.exe --selftest [dir]" renders every effect to PNG contact sheets without
     /// touching the screen, and checks that each sound file opens. Used to verify builds.
     /// </summary>
     static class SelfTest
