@@ -85,3 +85,7 @@ copy first, because Windows locks the exe while it runs.
 
 Adding a click effect means writing one `Decal` subclass and one line in `Effects` (`src/App.cs`).
 Adding an always-on feature means one `IAmbient` class and one line in `Ambients` (`src/Ambient.cs`).
+
+## License
+
+[MIT](LICENSE)
