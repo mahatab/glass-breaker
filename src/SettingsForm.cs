@@ -26,7 +26,8 @@ namespace GlassBreaker
             {
                 using (Microsoft.Win32.RegistryKey k = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RunKey))
                 {
-                    if (on) k.SetValue(Name, "\"" + Application.ExecutablePath + "\"");
+                    // --autostart tells the app it was launched at sign-in, so it starts without the welcome tip
+                    if (on) k.SetValue(Name, "\"" + Application.ExecutablePath + "\" --autostart");
                     else k.DeleteValue(Name, false);
                 }
             }
@@ -75,6 +76,7 @@ namespace GlassBreaker
             AddCheck("General", "Sound", "sound", true);
             AddSlider("General", "Volume", "volume", 100, 0, 100, 10, " %");
             AddCheck("General", "Start with Windows", delegate { return AutoStart.Get(); }, delegate(bool on) { AutoStart.Set(on); });
+            AddCheck("General", "Start paused", "startpaused", false);
             AddCheck("General", "Keep marks until repaired", "persist", false);
             AddSlider("General", "Marks stay for", "hold", 6, 1, 60, 1, " s");
             AddCheck("General", "Chain reaction: six glass breaks close together drop the pane", "chain", true);

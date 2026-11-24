@@ -112,9 +112,10 @@ namespace GlassBreaker
         IntPtr hook;
         double lastTick;
 
-        public TrayApp(float scale)
+        public TrayApp(float scale, bool quiet)
         {
             this.scale = scale;
+            if (Settings.On("startpaused", false)) Settings.Set("enabled", false);
             marshal.CreateControl();
             IntPtr force = marshal.Handle;
             timer.Interval = 15;
@@ -162,7 +163,9 @@ namespace GlassBreaker
             tray.Visible = true;
             tray.DoubleClick += delegate { ShowSettings(); };
             Apply();
-            tray.ShowBalloonTip(4000, "Glass Breaker is armed", "Click anywhere to smash the screen. Double-click this tray icon for settings, or right-click it for the menu.", ToolTipIcon.Info);
+            if (!quiet)
+                tray.ShowBalloonTip(4000, Enabled ? "Glass Breaker is armed" : "Glass Breaker is paused",
+                    (Enabled ? "Click anywhere to smash the screen. " : "") + "Double-click this tray icon for settings, or right-click it for the menu.", ToolTipIcon.Info);
 
             hookProc = HookCallback;
             hook = Native.SetWindowsHookEx(Native.WH_MOUSE_LL, hookProc, Native.GetModuleHandle(null), 0);
@@ -417,7 +420,7 @@ namespace GlassBreaker
                     return;
                 }
                 Settings.Load();
-                Application.Run(new TrayApp(scale));
+                Application.Run(new TrayApp(scale, Array.IndexOf(args, "--autostart") >= 0));
             }
         }
     }
