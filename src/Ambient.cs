@@ -41,6 +41,7 @@ namespace GlassBreaker
             All.Add(new AmbientDef("weather", "Weather", new[] { "off", "snow", "rain" }, new[] { "Off", "Snow", "Rain" },
                 delegate(float s, Random r, Sounds snd) { return new Weather(s, r, true); }, Weather.Sample));
             All.Add(new AmbientDef("mate", "Screen mate", null, null, delegate(float s, Random r, Sounds snd) { return new Mate(s, r); }, Mate.Sample));
+            All.Add(new AmbientDef("eater", "Screen eater", null, null, delegate(float s, Random r, Sounds snd) { return new Eater(s, r, snd, true); }, Eater.Sample));
         }
     }
 }

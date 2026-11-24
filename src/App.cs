@@ -303,9 +303,10 @@ namespace GlassBreaker
             foreach (Decal d in decals)
             {
                 if (!(d is GlassDecal)) continue;
-                float dx = d.Center.X - p.X, dy = d.Center.Y - p.Y;
+                Point c = d.Center;
+                float dx = c.X - p.X, dy = c.Y - p.Y;
                 if (dx * dx + dy * dy > reach * reach) continue;
-                near.Add(d); sx += d.Center.X; sy += d.Center.Y;
+                near.Add(d); sx += c.X; sy += c.Y;
             }
             if (near.Count < Needed) return;
             foreach (Decal d in near) { d.Destroy(); decals.Remove(d); }
