@@ -37,6 +37,8 @@ namespace GlassBreaker
             All.Add(new EffectDef("bullet", "Bullet holes", "gunshot", delegate(Point p, Random r, float s) { return new BulletDecal(p, r, s); }));
             All.Add(new EffectDef("paintball", "Paintball splats", "splat", delegate(Point p, Random r, float s) { return new PaintballDecal(p, r, s); }));
             All.Add(new EffectDef("ripples", "Water ripples", "plip", delegate(Point p, Random r, float s) { return new RippleDecal(p, r, s); }));
+            All.Add(new EffectDef("fireworks", "Fireworks", "pop", delegate(Point p, Random r, float s) { return new FireworkDecal(p, r, s); }));
+            All.Add(new EffectDef("confetti", "Confetti", "pop", delegate(Point p, Random r, float s) { return new ConfettiDecal(p, r, s); }));
         }
 
         public static EffectDef Find(string key)
