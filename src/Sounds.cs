@@ -22,20 +22,41 @@ namespace GlassBreaker
         public bool Enabled = true;
         public readonly List<string> Log = new List<string>();
 
-        public Sounds()
+        int volume = -1;
+        bool open;
+
+        public Sounds() : this(100) { }
+
+        public Sounds(int volumePercent)
         {
-            string dir = Path.Combine(Path.GetTempPath(), "GlassBreaker", Version);
+            for (int n = 0; n < Names.Length; n++) { count[Names[n]] = Counts[n]; last[Names[n]] = -1; }
+            SetVolume(volumePercent);
+        }
+
+        /// <summary>
+        /// Volume in steps of 10 percent. MCI's wave player has no volume control of its own, so
+        /// each level gets its own set of files, synthesized once and kept in %TEMP%.
+        /// </summary>
+        public void SetVolume(int percent)
+        {
+            percent = Math.Max(0, Math.Min(100, percent)) / 10 * 10;
+            if (percent == volume) return;
+            Close();
+            volume = percent;
+            Log.Clear();
+            if (volume == 0) return;
+            double gain = Math.Pow(volume / 100.0, 1.6);   // ears are not linear: this makes 50% sound about half as loud
+            string dir = Path.Combine(Path.GetTempPath(), "GlassBreaker", Version, "vol" + volume);
             Directory.CreateDirectory(dir);
+            open = true;
             for (int n = 0; n < Names.Length; n++)
             {
-                count[Names[n]] = Counts[n];
-                last[Names[n]] = -1;
                 for (int i = 0; i < Counts[n]; i++)
                 {
                     string path = Path.Combine(dir, Names[n] + i + ".wav");
                     if (!File.Exists(path))
                     {
-                        try { File.WriteAllBytes(path, Wav(Make(Names[n], new Random(1000 + n * 131 + i * 77)))); }
+                        try { File.WriteAllBytes(path, Wav(Make(Names[n], new Random(1000 + n * 131 + i * 77)), gain)); }
                         catch (IOException) { }
                     }
                     int rc = Native.mciSendString("open \"" + path + "\" type waveaudio alias gb_" + Names[n] + i, null, 0, IntPtr.Zero);
@@ -48,18 +69,22 @@ namespace GlassBreaker
 
         public void Play(string name)
         {
-            if (!Enabled) return;
+            if (!Enabled || !open) return;
             int n = count[name], i = rnd.Next(n);
             if (i == last[name]) i = (i + 1) % n;   // don't cut off the one still ringing
             last[name] = i;
             Native.mciSendString("play gb_" + name + i + " from 0", null, 0, IntPtr.Zero);
         }
 
-        public void Dispose()
+        void Close()
         {
+            if (!open) return;
+            open = false;
             foreach (KeyValuePair<string, int> kv in count)
                 for (int i = 0; i < kv.Value; i++) Native.mciSendString("close gb_" + kv.Key + i, null, 0, IntPtr.Zero);
         }
+
+        public void Dispose() { Close(); }
 
         // ------------------------------------------------------------ synthesis
 
@@ -286,7 +311,7 @@ namespace GlassBreaker
             return buf;
         }
 
-        static byte[] Wav(double[] buf)
+        static byte[] Wav(double[] buf, double gain)
         {
             int n = buf.Length;
             double peak = 1e-9;
@@ -298,7 +323,7 @@ namespace GlassBreaker
             w.Write(Encoding.ASCII.GetBytes("data")); w.Write(n * 2);
             for (int i = 0; i < n; i++)
             {
-                double v = Math.Tanh(buf[i] / peak * 1.6) * 0.95;
+                double v = Math.Tanh(buf[i] / peak * 1.6) * 0.95 * gain;
                 int tail = n - i;
                 if (tail < 2000) v *= tail / 2000.0;
                 w.Write((short)(v * 32767));

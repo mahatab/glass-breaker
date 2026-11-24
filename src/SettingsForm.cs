@@ -73,6 +73,7 @@ namespace GlassBreaker
             // General
             AddCheck("General", "Enabled" + (hotkeyOk ? "  (" + HotkeyWindow.Display + " pauses and clears)" : ""), "enabled", true);
             AddCheck("General", "Sound", "sound", true);
+            AddSlider("General", "Volume", "volume", 100, 0, 100, 10, " %");
             AddCheck("General", "Start with Windows", delegate { return AutoStart.Get(); }, delegate(bool on) { AutoStart.Set(on); });
             AddCheck("General", "Keep marks until repaired", "persist", false);
             AddSlider("General", "Marks stay for", "hold", 6, 1, 60, 1, " s");
@@ -176,6 +177,7 @@ namespace GlassBreaker
             TrackBar t = new TrackBar();
             t.AutoSize = false;
             t.TickStyle = TickStyle.None;
+            t.BackColor = SystemColors.ControlLightLight;   // a TrackBar cannot be transparent; match the tab page
             t.Minimum = min / step; t.Maximum = max / step;
             t.SetBounds(S(164), nextY[page], S(190), S(30));
             Label v = new Label();
