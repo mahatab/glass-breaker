@@ -235,6 +235,16 @@ namespace GlassBreaker
 
         bool Enabled { get { return Settings.On("enabled", true); } }
 
+        /// <summary>Display scale times the user's chosen mark size.</summary>
+        float MarkScale
+        {
+            get
+            {
+                string size = Settings.Get("size", "normal");
+                return scale * (size == "small" ? 0.65f : size == "large" ? 1.4f : size == "huge" ? 1.9f : 1f);
+            }
+        }
+
         /// <summary>Brings everything in line with the current settings.</summary>
         void Apply()
         {
@@ -296,7 +306,7 @@ namespace GlassBreaker
         {
             sounds.Play(e.Sound);
             while (decals.Count >= MaxDecals) { decals[0].Destroy(); decals.RemoveAt(0); }
-            decals.Add(e.Make(p, rnd, scale));
+            decals.Add(e.Make(p, rnd, MarkScale));
             if (e.Key == "glass" && Settings.On("chain", true)) ChainReaction(p);
             timer.Start();
         }
@@ -305,7 +315,7 @@ namespace GlassBreaker
         void ChainReaction(Point p)
         {
             const int Needed = 6;
-            float reach = 260 * scale;
+            float reach = 260 * MarkScale;
             List<Decal> near = new List<Decal>();
             long sx = 0, sy = 0;
             foreach (Decal d in decals)
@@ -319,7 +329,7 @@ namespace GlassBreaker
             if (near.Count < Needed) return;
             foreach (Decal d in near) { d.Destroy(); decals.Remove(d); }
             sounds.Play("crash");
-            decals.Add(new PaneFallDecal(new Point((int)(sx / near.Count), (int)(sy / near.Count)), rnd, scale));
+            decals.Add(new PaneFallDecal(new Point((int)(sx / near.Count), (int)(sy / near.Count)), rnd, MarkScale));
         }
 
         void Tick()

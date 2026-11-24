@@ -88,6 +88,7 @@ namespace GlassBreaker
             AddChoice("Clicks", "Left click", "left", "glass", keys.ToArray(), names.ToArray());
             AddChoice("Clicks", "Middle click", "middle", "none", keys.ToArray(), names.ToArray());
             AddChoice("Clicks", "Right click", "right", "none", keys.ToArray(), names.ToArray());
+            AddChoice("Clicks", "Mark size", "size", "normal", new[] { "small", "normal", "large", "huge" }, new[] { "Small", "Normal", "Large", "Huge" });
 
             // Desktop: one row per always-on feature
             AddNote("Desktop", "Things that live on your desktop without needing a click.");
