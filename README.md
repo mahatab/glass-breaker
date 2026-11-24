@@ -9,14 +9,17 @@ if the monitor cracked under the mouse.
 Clicks are never blocked: everything is drawn on click-through overlays, so whatever you
 clicked still receives the click.
 
-## Build
+## Download
 
-Run `build.cmd`. It uses the C# compiler that ships with Windows (.NET Framework 4.x), so no
-SDK is needed. The result is a single `GlassBreaker.exe` with no dependencies.
+Get `GlassBreaker.exe` from the [latest release](https://github.com/mahatab/glass-breaker/releases/latest).
+It is one file of about 100 KB: no installer, and nothing else to install on Windows 10 or 11.
+The exe is code-signed and timestamped, and each release lists its SHA-256 checksum.
 
 ## Use
 
-Start `GlassBreaker.exe`, then click anywhere. Right-click the tray icon for everything else.
+Start `GlassBreaker.exe`, then click anywhere. A tray icon appears; right-click it for
+everything else. To remove the toy, exit from the tray menu and delete the file. Settings are
+kept in `%APPDATA%\GlassBreaker`, and generated sounds in `%TEMP%\GlassBreaker`.
 
 ### Click effects
 
@@ -36,6 +39,10 @@ Pick one for each mouse button under **Left click**, **Middle click** and **Righ
 
 **Chain reaction:** six glass breaks close together and the whole pane falls out.
 
+Each row below is one effect, shown 0.12 s, 0.45 s and 5 s after the click:
+
+![Every click effect at three moments](docs/effects.png)
+
 ### Always-on features
 
 | Feature | What it does |
@@ -46,6 +53,8 @@ Pick one for each mouse button under **Left click**, **Middle click** and **Righ
 | Screen mate | A critter that walks the taskbar, hops onto windows and naps; click it to make it jump |
 | Screen eater | A fuzzball that eats holes in the screen until you repair it; click it to chase it off |
 
+![Mouse trails, bugs, weather, the screen mate, the screen eater and the chain reaction](docs/always-on.png)
+
 ### Controls
 
 - **Enabled**, or double-click the tray icon: pause and resume.
@@ -55,6 +64,12 @@ Pick one for each mouse button under **Left click**, **Middle click** and **Righ
 - **Sound**, **Start with Windows**.
 
 Choices are saved in `%APPDATA%\GlassBreaker\settings.ini`.
+
+## Build from source
+
+Run `build.cmd`. It uses the C# compiler that ships with Windows (.NET Framework 4.x), so no
+SDK is needed. The result is a single `GlassBreaker.exe` next to the script. Exit any running
+copy first, because Windows locks the exe while it runs.
 
 ## How it works
 
