@@ -81,6 +81,7 @@ namespace GlassBreaker
             AddCheck("General", "Keep marks until repaired", "persist", false);
             AddSlider("General", "Marks stay for", "hold", 6, 1, 60, 1, " s");
             AddCheck("General", "Chain reaction: six glass breaks close together drop the pane", "chain", true);
+            AddStatus("General", TrayApp.MarksMade);
 
             // Clicks
             List<string> keys = new List<string>(), names = new List<string>();
@@ -130,6 +131,20 @@ namespace GlassBreaker
             p.Controls.Add(l);
             nextY[page] += S(40);
             return l;
+        }
+
+        /// <summary>A grey line of text that is re-read whenever the window refreshes or comes to the front.</summary>
+        public Label AddStatus(string page, Func<string> text)
+        {
+            Label l = AddNote(page, text());
+            refreshers.Add(delegate { l.Text = text(); });
+            return l;
+        }
+
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+            RefreshAll();
         }
 
         public CheckBox AddCheck(string page, string text, string key, bool def)
