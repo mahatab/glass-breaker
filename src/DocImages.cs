@@ -24,6 +24,83 @@ namespace WindowsTrayToys
             AlwaysOn(Path.Combine(dir, "always-on.png"));
         }
 
+        /// <summary>
+        /// "WindowsTrayToys.exe --screenshots [dir]" stages three scenes on the real desktop and
+        /// photographs the primary screen after each. Unlike the other modes this one does draw
+        /// on screen, and the pictures show whatever else is on the desktop at the time.
+        /// </summary>
+        public static void Screenshots(string dir, float scale)
+        {
+            Directory.CreateDirectory(dir);
+            Rectangle scr = System.Windows.Forms.Screen.PrimaryScreen.Bounds;
+            Random rnd = new Random(4);
+            List<Decal> decals = new List<Decal>();
+            List<IAmbient> ambient = new List<IAmbient>();
+            Decal.Persist = true;
+
+            Action<double> run = delegate(double seconds)
+            {
+                System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+                double last = 0;
+                while (sw.Elapsed.TotalSeconds < seconds)
+                {
+                    double now = sw.Elapsed.TotalSeconds;
+                    float dt = (float)Math.Min(0.05, now - last);
+                    last = now;
+                    foreach (Decal d in decals) d.Update();
+                    foreach (IAmbient a in ambient) a.Tick(dt);
+                    System.Windows.Forms.Application.DoEvents();
+                    System.Threading.Thread.Sleep(15);
+                }
+            };
+            Func<double, double, Point> at = delegate(double fx, double fy) { return new Point(scr.Left + (int)(scr.Width * fx), scr.Top + (int)(scr.Height * fy)); };
+            Action<string> shoot = delegate(string name)
+            {
+                using (Bitmap b = new Bitmap(scr.Width, scr.Height))
+                {
+                    using (Graphics g = Graphics.FromImage(b))
+                    {
+                        IntPtr screen = Native.GetDC(IntPtr.Zero), dst = g.GetHdc();
+                        Native.BitBlt(dst, 0, 0, scr.Width, scr.Height, screen, scr.Left, scr.Top, 0x40CC0020);   // SRCCOPY | CAPTUREBLT: include layered windows
+                        g.ReleaseHdc(dst);
+                        Native.ReleaseDC(IntPtr.Zero, screen);
+                    }
+                    b.Save(Path.Combine(dir, name), ImageFormat.Png);
+                }
+            };
+
+            run(4);   // time to get the terminal out of the way
+
+            // 1. the original: one glass break
+            decals.Add(new GlassDecal(at(0.42, 0.40), rnd, scale));
+            run(1.2);
+            shoot("desktop-glass.png");
+
+            // 2. a busy afternoon: most of the click effects together
+            decals.Add(new PaintballDecal(at(0.72, 0.30), rnd, scale));
+            decals.Add(new PaintballDecal(at(0.82, 0.42), rnd, scale));
+            for (int i = 0; i < 6; i++) decals.Add(new BulletDecal(at(0.12 + 0.035 * i + rnd.NextDouble() * 0.02, 0.62 + rnd.NextDouble() * 0.12), rnd, scale));
+            decals.Add(new DentDecal(at(0.58, 0.70), rnd, scale));
+            decals.Add(new BurnDecal(at(0.24, 0.26), rnd, scale));
+            run(4.5);   // let the paint run
+            decals.Add(new FireworkDecal(at(0.62, 0.22), rnd, scale));
+            decals.Add(new LightningDecal(at(0.90, 0.72), rnd, scale));
+            run(0.2);
+            shoot("desktop-effects.png");
+
+            // 3. the residents: snow, bugs, the mate and the eater
+            foreach (Decal d in decals) d.Destroy();
+            decals.Clear();
+            Weather weather = new Weather(scale, rnd, true); weather.SetMode("snow"); ambient.Add(weather);
+            ambient.Add(new Bugs(scale, rnd, null));
+            ambient.Add(new Mate(scale, rnd));
+            ambient.Add(new Eater(scale, rnd, null, true));
+            run(14);    // long enough for snow to settle and a few bites to be taken
+            shoot("desktop-creatures.png");
+
+            foreach (IAmbient a in ambient) a.Dispose();
+        }
+
         static Graphics Canvas(Bitmap b)
         {
             Graphics g = Graphics.FromImage(b);

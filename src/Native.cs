@@ -35,6 +35,7 @@ namespace WindowsTrayToys
         [DllImport("user32.dll")] public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
         [DllImport("gdi32.dll")] public static extern IntPtr CreateCompatibleDC(IntPtr hDC);
         [DllImport("gdi32.dll")] public static extern bool DeleteDC(IntPtr hdc);
+        [DllImport("gdi32.dll")] public static extern bool BitBlt(IntPtr dst, int x, int y, int w, int h, IntPtr src, int sx, int sy, int rop);
         [DllImport("gdi32.dll")] public static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
         [DllImport("gdi32.dll")] public static extern bool DeleteObject(IntPtr hObject);
         [DllImport("user32.dll")] public static extern bool DestroyIcon(IntPtr hIcon);
