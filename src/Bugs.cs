@@ -18,7 +18,6 @@ namespace GlassBreaker
             public bool Splat, SplatDrawn;
         }
 
-        const int Count = 7;
         readonly float s;
         readonly Random rnd;
         readonly Sounds snd;
@@ -33,15 +32,7 @@ namespace GlassBreaker
             size = (int)(48 * s);
             bmp = new Bitmap(size, size, PixelFormat.Format32bppArgb);
             vs = SystemInformation.VirtualScreen;
-            for (int i = 0; i < Count; i++)
-            {
-                Bug b = new Bug();
-                b.Win.Create(0, 0, size, size);
-                Respawn(b);
-                // start scattered across the screen rather than all at the edges
-                b.X = vs.Left + Rand(0.1f, 0.9f) * vs.Width; b.Y = vs.Top + Rand(0.1f, 0.9f) * vs.Height;
-                bugs.Add(b);
-            }
+            SetMode(null);
         }
 
         float Rand(float a, float b) { return a + (float)rnd.NextDouble() * (b - a); }
@@ -61,7 +52,25 @@ namespace GlassBreaker
             b.Head = b.Target = (float)Math.Atan2(vs.Top + vs.Height / 2f - b.Y, vs.Left + vs.Width / 2f - b.X);
         }
 
-        public void SetMode(string mode) { }
+        /// <summary>Called whenever settings change: grows or shrinks the swarm to the chosen size.</summary>
+        public void SetMode(string mode)
+        {
+            int want = Math.Max(1, Math.Min(25, Settings.Int("bugcount", 7)));
+            while (bugs.Count < want)
+            {
+                Bug b = new Bug();
+                b.Win.Create(0, 0, size, size);
+                Respawn(b);
+                // start scattered across the screen rather than all at the edges
+                b.X = vs.Left + Rand(0.1f, 0.9f) * vs.Width; b.Y = vs.Top + Rand(0.1f, 0.9f) * vs.Height;
+                bugs.Add(b);
+            }
+            while (bugs.Count > want)
+            {
+                bugs[bugs.Count - 1].Win.Destroy();
+                bugs.RemoveAt(bugs.Count - 1);
+            }
+        }
 
         public void Tick(float dt)
         {

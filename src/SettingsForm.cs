@@ -97,6 +97,7 @@ namespace GlassBreaker
             {
                 if (a.Keys == null) AddCheck("Desktop", a.Title, a.Key, false);
                 else AddChoice("Desktop", a.Title, a.Key, a.Off, a.Keys, a.Names);
+                if (a.Key == "bugs") AddSlider("Desktop", "Number of bugs", "bugcount", 7, 1, 25, 1, "");
             }
         }
 
