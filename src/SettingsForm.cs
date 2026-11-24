@@ -75,6 +75,7 @@ namespace GlassBreaker
             AddCheck("General", "Sound", "sound", true);
             AddCheck("General", "Start with Windows", delegate { return AutoStart.Get(); }, delegate(bool on) { AutoStart.Set(on); });
             AddCheck("General", "Keep marks until repaired", "persist", false);
+            AddSlider("General", "Marks stay for", "hold", 6, 1, 60, 1, " s");
             AddCheck("General", "Chain reaction: six glass breaks close together drop the pane", "chain", true);
 
             // Clicks
@@ -160,6 +161,67 @@ namespace GlassBreaker
             p.Controls.Add(l); p.Controls.Add(c);
             nextY[page] += S(36);
             return c;
+        }
+
+        /// <summary>
+        /// A slider row. The number beside it follows the thumb, but the setting is only written
+        /// when the user lets go, so dragging does not apply a dozen intermediate values.
+        /// </summary>
+        public TrackBar AddSlider(string page, string label, string key, int def, int min, int max, int step, string unit)
+        {
+            TabPage p = Page(page);
+            Label l = new Label();
+            l.Text = label;
+            l.SetBounds(S(16), nextY[page] + S(6), S(150), S(22));
+            TrackBar t = new TrackBar();
+            t.AutoSize = false;
+            t.TickStyle = TickStyle.None;
+            t.Minimum = min / step; t.Maximum = max / step;
+            t.SetBounds(S(164), nextY[page], S(190), S(30));
+            Label v = new Label();
+            v.SetBounds(S(358), nextY[page] + S(6), S(70), S(22));
+            Action show = delegate { v.Text = (t.Value * step) + unit; };
+            Action load = delegate
+            {
+                t.Value = Math.Max(t.Minimum, Math.Min(t.Maximum, Settings.Int(key, def) / step));
+                show();
+            };
+            Action commit = delegate
+            {
+                int val = t.Value * step;
+                if (refreshing || val == Settings.Int(key, def)) return;
+                Settings.Set(key, val.ToString());
+                Fire();
+            };
+            load();
+            t.ValueChanged += delegate { show(); };
+            t.MouseUp += delegate { commit(); };
+            t.KeyUp += delegate { commit(); };
+            t.LostFocus += delegate { commit(); };
+            refreshers.Add(load);
+            p.Controls.Add(l); p.Controls.Add(t); p.Controls.Add(v);
+            nextY[page] += S(38);
+            return t;
+        }
+
+        /// <summary>Self-test: a picture of each tab.</summary>
+        public List<Bitmap> Snapshots()
+        {
+            List<Bitmap> shots = new List<Bitmap>();
+            StartPosition = FormStartPosition.Manual;
+            Location = new Point(-8000, -8000);   // off every screen
+            ShowInTaskbar = false;
+            Show();
+            for (int i = 0; i < tabs.TabPages.Count; i++)
+            {
+                tabs.SelectedIndex = i;
+                Application.DoEvents();
+                Bitmap b = new Bitmap(Width, Height);
+                DrawToBitmap(b, new Rectangle(0, 0, Width, Height));
+                shots.Add(b);
+            }
+            Hide();
+            return shots;
         }
 
         /// <summary>Re-reads every setting into its control, after something else (the tray menu, the hotkey) changed it.</summary>
